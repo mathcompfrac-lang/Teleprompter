@@ -1,0 +1,261 @@
+import Foundation
+import StoreKit
+import Combine
+
+/// 产品 ID
+enum ProductID: String {
+    case perUse = "com.teleprompter.per_use_1"
+    case monthly = "com.teleprompter.monthly"
+    case yearly = "com.teleprompter.yearly"
+}
+
+/// 订阅类型
+enum SubscriptionType: String, CaseIterable {
+    case perUse = "com.teleprompter.per_use_1"
+    case monthly = "com.teleprompter.monthly"
+    case yearly = "com.teleprompter.yearly"
+
+    var displayName: String {
+        switch self {
+        case .perUse: return "按次付费"
+        case .monthly: return "月卡"
+        case .yearly: return "年卡"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .perUse: return "买固定次数，用完即止"
+        case .monthly: return "按月订阅，自动续费"
+        case .yearly: return "按年订阅，自动续费，更优惠"
+        }
+    }
+}
+
+/// 购买状态
+enum PurchaseState: Equatable {
+    case idle
+    case loading
+    case purchasing
+    case restoring
+    case success
+    case failed(String)
+
+    static func == (lhs: PurchaseState, rhs: PurchaseState) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle), (.loading, .loading), (.purchasing, .purchasing),
+             (.restoring, .restoring), (.success, .success):
+            return true
+        case (.failed(let lhsError), .failed(let rhsError)):
+            return lhsError == rhsError
+        default:
+            return false
+        }
+    }
+}
+
+/// 内购管理器
+@MainActor
+final class StoreManager: ObservableObject {
+    static let shared = StoreManager()
+
+    // MARK: - Published
+
+    @Published var products: [Product] = []
+    @Published var purchaseState: PurchaseState = .idle
+    @Published var isPremium = false
+    @Published var subscriptionEndDate: Date?
+    @Published var activeSubscriptionType: SubscriptionType?
+
+    // MARK: - Private
+
+    private var updates: Task<Void, Never>?
+
+    // MARK: - Init
+
+    private init() {
+        updates = Task { [weak self] in
+            for await result in Transaction.updates {
+                await self?.handleTransactionResult(result)
+            }
+        }
+    }
+
+    deinit {
+        updates?.cancel()
+    }
+
+    // MARK: - Public Methods
+
+    /// 加载产品（按次付费 + 月卡 + 年卡）
+    func loadProducts() async {
+        let productIDs: Set<String> = [
+            ProductID.perUse.rawValue,
+            ProductID.monthly.rawValue,
+            ProductID.yearly.rawValue
+        ]
+
+        print("[StoreManager] 开始加载产品，IDs: \(productIDs)")
+        purchaseState = .loading
+
+        do {
+            products = try await Product.products(for: productIDs)
+            print("[StoreManager] 加载成功，产品数量: \(products.count)")
+            for product in products {
+                print("[StoreManager] 产品: \(product.id) - \(product.displayPrice)")
+            }
+
+            // 按顺序排列：按次付费、年卡、月卡
+            products.sort { p1, p2 in
+                let order: [String] = [
+                    ProductID.perUse.rawValue,
+                    ProductID.yearly.rawValue,
+                    ProductID.monthly.rawValue
+                ]
+                guard let i1 = order.firstIndex(of: p1.id),
+                      let i2 = order.firstIndex(of: p2.id) else { return false }
+                return i1 < i2
+            }
+
+            if products.isEmpty {
+                purchaseState = .failed("未找到产品，请检查App Store Connect配置")
+            } else {
+                purchaseState = .idle
+            }
+        } catch {
+            print("[StoreManager] 加载产品失败: \(error)")
+            purchaseState = .failed("加载失败: \(error.localizedDescription)")
+        }
+    }
+
+    /// 重新加载产品（用于错误恢复）
+    func reloadProducts() async {
+        print("[StoreManager] 重新加载产品...")
+        await loadProducts()
+    }
+
+    /// 购买产品
+    func purchase(_ product: Product) async {
+        purchaseState = .purchasing
+        print("[StoreManager] 开始购买产品: \(product.id)")
+        do {
+            let result = try await product.purchase()
+            print("[StoreManager] 购买结果: \(result)")
+            await handlePurchaseResult(result)
+        } catch {
+            print("[StoreManager] 购买失败: \(error)")
+            print("[StoreManager] 错误详情: \(String(describing: error))")
+            purchaseState = .failed("购买失败: \(error.localizedDescription)")
+        }
+    }
+
+    /// 恢复购买
+    func restorePurchases() async {
+        purchaseState = .restoring
+        do {
+            try await AppStore.sync()
+            await checkPurchasedProducts()
+            purchaseState = .success
+        } catch {
+            purchaseState = .failed(error.localizedDescription)
+        }
+    }
+
+    /// 从 StoreKit 检查已生效的订阅
+    func checkPurchasedProducts() async {
+        var hasActiveSubscription = false
+        var latestEndDate: Date?
+        var activeType: SubscriptionType?
+
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result else { continue }
+
+            // 只处理月卡/年卡订阅
+            guard transaction.productID == ProductID.monthly.rawValue ||
+                  transaction.productID == ProductID.yearly.rawValue else {
+                continue
+            }
+
+            hasActiveSubscription = true
+
+            // 记录订阅类型
+            if transaction.productID == ProductID.monthly.rawValue {
+                activeType = .monthly
+            } else if transaction.productID == ProductID.yearly.rawValue {
+                activeType = .yearly
+            }
+
+            if let expiration = transaction.expirationDate {
+                if latestEndDate == nil || expiration > latestEndDate! {
+                    latestEndDate = expiration
+                }
+            }
+        }
+
+        isPremium = hasActiveSubscription
+        subscriptionEndDate = latestEndDate
+        activeSubscriptionType = activeType
+    }
+
+    /// 是否可以使用全部功能（已订阅）
+    var canUsePremiumFeatures: Bool {
+        isPremium
+    }
+
+    /// 获取产品（按类型）
+    func product(for type: SubscriptionType) -> Product? {
+        products.first { $0.id == type.rawValue }
+    }
+
+    /// 获取按次付费产品
+    var perUseProduct: Product? {
+        products.first { $0.id == ProductID.perUse.rawValue }
+    }
+
+    /// 是否已加载产品
+    var isProductsLoaded: Bool {
+        !products.isEmpty
+    }
+
+    /// 重置购买状态（测试用）
+    func resetPurchaseState() async {
+        isPremium = false
+        subscriptionEndDate = nil
+        activeSubscriptionType = nil
+        print("[StoreManager] 已重置购买状态")
+    }
+
+    // MARK: - Private Methods
+
+    private func handlePurchaseResult(_ result: Product.PurchaseResult) async {
+        switch result {
+        case .success(let verification):
+            if case .verified(let transaction) = verification {
+                // 直接从 transaction.productID 确定订阅类型
+                if let type = SubscriptionType(rawValue: transaction.productID) {
+                    activeSubscriptionType = type
+                    isPremium = true
+                }
+                await transaction.finish()
+                // 异步刷新到期日期（不依赖它来确定类型）
+                await checkPurchasedProducts()
+                purchaseState = .success
+                saveLocalState()
+            } else {
+                purchaseState = .failed("购买验证失败")
+            }
+        case .userCancelled:
+            purchaseState = .idle
+        case .pending:
+            purchaseState = .idle
+        @unknown default:
+            purchaseState = .failed("未知错误")
+        }
+    }
+
+    private func handleTransactionResult(_ result: VerificationResult<Transaction>) async {
+        guard case .verified(let transaction) = result else { return }
+        await transaction.finish()
+        await checkPurchasedProducts()
+    }
+}

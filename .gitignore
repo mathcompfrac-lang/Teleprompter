@@ -1,0 +1,13 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
+
+# Archives (IPA, xcarchive)
+*.xcarchive
+*.ipa
+
+# macOS
+.DS_Store

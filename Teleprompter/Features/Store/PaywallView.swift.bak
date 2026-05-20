@@ -1,0 +1,361 @@
+import SwiftUI
+
+struct PaywallView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var storeManager = StoreManager.shared
+    @StateObject private var ticketManager = TicketManager.shared
+    
+    @State private var selectedSubscription: SubscriptionType?
+    @State private var showPerUsePicker = false
+    @State private var perUseCount = 1
+    @State private var showSuccess = false
+    @State private var errorMessage: String?
+    @State private var showError = false
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // 1. 皇冠图标 + 标题
+                    headerSection
+                    
+                    // 2. 当前状态卡片
+                    statusCardSection
+                    
+                    // 3. 已有订阅时的绿色提示
+                    if storeManager.isPremium {
+                        subscriptionNoticeSection
+                    }
+                    
+                    // 4. 方案选择
+                    plansSection
+                    
+                    // 5. 购买按钮
+                    purchaseButtonSection
+                    
+                    // 6. 底部链接
+                    bottomLinksSection
+                }
+                .padding()
+            }
+            .navigationTitle("升级会员")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("关闭") { dismiss() }
+                }
+            }
+            .alert("购买失败", isPresented: $showError) {
+                Button("确定", role: .cancel) { }
+            } message: {
+                Text(errorMessage ?? "未知错误")
+            }
+            .alert("购买成功", isPresented: $showSuccess) {
+                Button("确定", role: .cancel) {
+                    if selectedSubscription == .perUse {
+                        // 按次付费不关闭，可以继续购买
+                    } else {
+                        dismiss()
+                    }
+                }
+            } message: {
+                if selectedSubscription == .perUse {
+                    Text("已获得 \(perUseCount) 次使用权限")
+                } else {
+                    Text("订阅成功！会员权益已生效，系统将自动续费。")
+                }
+            }
+            .task {
+                await storeManager.loadProducts()
+            }
+        }
+    }
+    
+    // MARK: - 1. 头部区域
+    private var headerSection: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "crown.fill")
+                .font(.system(size: 50))
+                .foregroundColor(.orange)
+            
+            Text("解锁无限使用")
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            Text("免费额度用完后，选择适合的方式继续使用")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(.top)
+    }
+    
+    // MARK: - 2. 当前状态卡片
+    private var statusCardSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let endDate = storeManager.subscriptionEndDate {
+                Label("会员到期时间: \(endDate.formatted(date: .abbreviated, time: .omitted))", systemImage: "checkmark.seal.fill")
+                    .foregroundColor(.green)
+            } else if ticketManager.freeUsesRemaining > 0 {
+                Label("免费试用剩余: \(ticketManager.freeUsesRemaining) 次", systemImage: "gift.fill")
+                    .foregroundColor(.blue)
+            } else if ticketManager.perUseTickets > 0 {
+                Label("按次付费剩余: \(ticketManager.perUseTickets) 次", systemImage: "ticket.fill")
+                    .foregroundColor(.orange)
+            } else {
+                Label("免费额度已用完", systemImage: "exclamationmark.triangle.fill")
+                    .foregroundColor(.red)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
+    }
+    
+    // MARK: - 3. 订阅提示横幅
+    private var subscriptionNoticeSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("您已有生效的订阅", systemImage: "info.circle.fill")
+                .foregroundColor(.green)
+                .fontWeight(.medium)
+            
+            if let endDate = storeManager.subscriptionEndDate {
+                Text("到期时间: \(endDate.formatted(date: .abbreviated, time: .omitted))")
+                    .font(.caption)
+            }
+            
+            Text("订阅由 App Store 自动管理，到期后自动续费，无需手动操作。")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            if let type = storeManager.activeSubscriptionType {
+                Text("当前方案: \(type.displayName)")
+                    .font(.caption)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(10)
+    }
+    
+    // MARK: - 4. 方案选择
+    private var plansSection: some View {
+        VStack(spacing: 15) {
+            // 按次付费卡片
+            perUseCard
+            
+            // 月卡卡片
+            subscriptionCard(type: .monthly, isPopular: false)
+            
+            // 年卡卡片
+            subscriptionCard(type: .yearly, isPopular: true)
+        }
+    }
+    
+    // MARK: - 按次付费卡片
+    private var perUseCard: some View {
+        let isDisabled = storeManager.isPremium
+        
+        return VStack {
+            Button {
+                if !isDisabled {
+                    selectedSubscription = .perUse
+                    showPerUsePicker.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "number")
+                        .foregroundColor(.blue)
+                    Text("按次付费")
+                        .fontWeight(.medium)
+                    Spacer()
+                    if isDisabled {
+                        Text("会员无需按次")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else if selectedSubscription == .perUse {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.blue)
+                    }
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+            }
+            .disabled(isDisabled)
+            .opacity(isDisabled ? 0.5 : 1.0)
+            
+            if showPerUsePicker && selectedSubscription == .perUse {
+                // 次数选择器
+                HStack {
+                    Button("-") { if perUseCount > 1 { perUseCount -= 1 } }
+                    Text("\(perUseCount) 次")
+                    Button("+") { if perUseCount < 100 { perUseCount += 1 } }
+                }
+                .padding(.horizontal)
+                
+                HStack {
+                    ForEach([5, 10, 20, 50], id: \.self) { count in
+                        Button("+\(count)") {
+                            perUseCount = min(perUseCount + count, 100)
+                        }
+                        .font(.caption)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - 订阅卡片
+    private func subscriptionCard(type: SubscriptionType, isPopular: Bool) -> some View {
+        let productID = type == .monthly ? "com.teleprompter.monthly" : "com.teleprompter.yearly"
+        let product = storeManager.products.first { $0.id == productID }
+        let isCurrentPlan = storeManager.activeSubscriptionType == type
+        let isDisabled = isCurrentPlan
+        
+        return VStack {
+            if isPopular {
+                Text("最优惠")
+                    .font(.caption)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.orange)
+                    .cornerRadius(5)
+            }
+            
+            Button {
+                if !isDisabled {
+                    selectedSubscription = type
+                    showPerUsePicker = false
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(type.displayName)
+                            .fontWeight(.medium)
+                        if let product = product {
+                            Text(product.displayPrice + "/\(type == .monthly ? "月" : "年")")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Spacer()
+                    if isCurrentPlan {
+                        Text("当前方案")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else if selectedSubscription == type {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.blue)
+                    }
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+            }
+            .disabled(isDisabled)
+            .opacity(isDisabled ? 0.5 : 1.0)
+        }
+    }
+    
+    // MARK: - 5. 购买按钮
+    private var purchaseButtonSection: some View {
+        VStack {
+            Button {
+                Task { await handlePurchase() }
+            } label: {
+                Text(purchaseButtonTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(selectedSubscription == nil ? Color.gray : Color.blue)
+                    .cornerRadius(10)
+            }
+            .disabled(selectedSubscription == nil || storeManager.purchaseState == .purchasing)
+            
+            if storeManager.purchaseState == .purchasing {
+                ProgressView()
+            }
+            
+            Button("恢复购买") {
+                Task {
+                    try? await AppStore.sync()
+                }
+            }
+            .font(.caption)
+            .padding(.top, 5)
+        }
+    }
+    
+    // MARK: - 6. 底部链接
+    private var bottomLinksSection: some View {
+        HStack {
+            Link("隐私政策", destination: URL(string: "https://example.com/privacy")!)
+            Spacer()
+            Link("服务条款", destination: URL(string: "https://example.com/terms")!)
+        }
+        .font(.caption)
+        .foregroundColor(.blue)
+        .padding(.top)
+    }
+    
+    // MARK: - 购买按钮文案
+    private var purchaseButtonTitle: String {
+        guard let subscription = selectedSubscription else {
+            return "选择方案"
+        }
+        
+        if subscription == .perUse {
+            let product = storeManager.products.first { $0.id == "com.teleprompter.per_use_1" }
+            let price = product?.displayPrice ?? "¥1"
+            return "购买 \(perUseCount) 次 \(price)"
+        } else {
+            let productID = subscription == .monthly ? "com.teleprompter.monthly" : "com.teleprompter.yearly"
+            let product = storeManager.products.first { $0.id == productID }
+            let price = product?.displayPrice ?? (subscription == .monthly ? "¥10" : "¥88")
+            
+            if storeManager.activeSubscriptionType == .monthly && subscription == .yearly {
+                return "升级至年卡 \(price)/年"
+            } else if storeManager.activeSubscriptionType == .yearly && subscription == .monthly {
+                return "切换至月卡 \(price)/月"
+            } else {
+                return "订阅\(subscription.displayName) \(price)/\(subscription == .monthly ? "月" : "年")"
+            }
+        }
+    }
+    
+    // MARK: - 购买处理
+    private func handlePurchase() async {
+        guard let subscription = selectedSubscription else { return }
+        
+        if subscription == .perUse {
+            // 按次付费
+            let productID = "com.teleprompter.per_use_1"
+            guard let product = storeManager.products.first(where: { $0.id == productID }) else {
+                errorMessage = "产品未找到"
+                showError = true
+                return
+            }
+            await storeManager.purchase(product)
+        } else {
+            // 月卡/年卡
+            let productID = subscription == .monthly ? "com.teleprompter.monthly" : "com.teleprompter.yearly"
+            guard let product = storeManager.products.first(where: { $0.id == productID }) else {
+                errorMessage = "产品未找到"
+                showError = true
+                return
+            }
+            await storeManager.purchase(product)
+        }
+    }
+}
+
+// MARK: - 预览
+struct PaywallView_Previews: PreviewProvider {
+    static var previews: some View {
+        PaywallView()
+    }
+}

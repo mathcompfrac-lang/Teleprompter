@@ -1,0 +1,694 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		077F39D4BF994B6B99564096 = {
+            fileRef = "F017A27FB9EF4690BC66424E";
+            isa = "PBXBuildFile";
+        };
+		13A7C28F75234021B998A659 = {
+            fileRef = "90F905030EE24999BFCC83C6";
+            isa = "PBXBuildFile";
+        };
+		151CF15AD2944F5CB1F8BED8 = {
+            fileRef = "1A12AFCEF55645CB83383DEE";
+            isa = "PBXBuildFile";
+        };
+		15326CE784C244EC9453BBC7 = {
+            fileRef = "76F9D1EFE4764185A96D7FAE";
+            isa = "PBXBuildFile";
+        };
+		1717E1D65B814C968E3DAAA8 = {
+            fileRef = "427ACC3B87C94660A3F6181F";
+            isa = "PBXBuildFile";
+        };
+		17FE8BD49E604D1B9BD25489 = {
+            fileRef = "01D4BEF8DF2B4ED68F219DD2";
+            isa = "PBXBuildFile";
+        };
+		1DADB367A9074DB38CAD1F77 = {
+            fileRef = "1BCC3281072A4F389A58DB05";
+            isa = "PBXBuildFile";
+        };
+		35B211C0EA43440D85E5F9AE = {
+            fileRef = "9A30ABF13BE34368A9F8BC72";
+            isa = "PBXBuildFile";
+        };
+		5343E662F6AC425A9E95E5E5 = {
+            fileRef = "1CEBB9FA4C864C5D9E22C569";
+            isa = "PBXBuildFile";
+        };
+		5521AF398CA34496926431E5 = {
+            fileRef = "E43BDA5022D14969A9A52F18";
+            isa = "PBXBuildFile";
+        };
+		5C762EB19FE5444EB318073A = {
+            fileRef = "AD49152CAA04413C9DB2B895";
+            isa = "PBXBuildFile";
+        };
+		5DAC55A5417D438ABA09E7E0 = {
+            fileRef = "034C246252944CD5A353BC45";
+            isa = "PBXBuildFile";
+        };
+		5F425805F3684171B8E13FBD = {
+            fileRef = "9705655888494043B8F37D73";
+            isa = "PBXBuildFile";
+        };
+		67B97AB2EDF84656BD4AB17D = {
+            fileRef = "0C8F5273F84E433BA4ACE0DF";
+            isa = "PBXBuildFile";
+        };
+		74E92745C2614D0EA858EE39 = {
+            fileRef = "9C2E87F0E955495AA0A0AF50";
+            isa = "PBXBuildFile";
+        };
+		7E9C7D0F496E4F49BE84AAAC = {
+            fileRef = "26E70AA6F56E4F468AE0BEF8";
+            isa = "PBXBuildFile";
+        };
+		8B9FDF56EEE141CC8F0044A5 = {
+            fileRef = "3F7403FA429C40158B746B92";
+            isa = "PBXBuildFile";
+        };
+		A7FD512A338A4EE0BDFDC810 = {
+            fileRef = "CD9E3FD084244A9B9E76363C";
+            isa = "PBXBuildFile";
+        };
+		B34289FB7873473E84DFD71D = {
+            fileRef = "EE2F19444F3347BABE988B9D";
+            isa = "PBXBuildFile";
+        };
+		BB9C93D91EFF4D86B6E5810C = {
+            fileRef = "A3509D8A40934CD0A18C8DDE";
+            isa = "PBXBuildFile";
+        };
+		C23C9B5AE2D1496C9D783B3C = {
+            fileRef = "09E8A5E1FBFD44B8A5B042D8";
+            isa = "PBXBuildFile";
+        };
+		C4530FAFE1D94B96882B9615 = {
+            fileRef = "9538ACAF8C1349E08FC62181";
+            isa = "PBXBuildFile";
+        };
+		D40399EE75AE44558B8E7D90 = {
+            fileRef = "61EB4C59EFD94E8E891FC0D5";
+            isa = "PBXBuildFile";
+        };
+		E503AB264563472AB1D2180D = {
+            fileRef = "3F611657A9224B22BE3A3E93";
+            isa = "PBXBuildFile";
+        };
+		F5C7FAEFF90A412F8A9DA5B5 = {
+            fileRef = "CDC2121C879042A79D4C7D4B";
+            isa = "PBXBuildFile";
+        };
+		F5CFFCD997124D33BC2B6E0D = {
+            fileRef = "95BD011DBB3242B7B9EFF420";
+            isa = "PBXBuildFile";
+        };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		01D4BEF8DF2B4ED68F219DD2 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "folder.assetcatalog";
+            path = "Assets.xcassets";
+            sourceTree = "<group>";
+        };
+		034C246252944CD5A353BC45 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "UIColor+Hex.swift";
+            sourceTree = "<group>";
+        };
+		09E8A5E1FBFD44B8A5B042D8 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Models/SettingsModel.swift";
+            sourceTree = "<group>";
+        };
+		0C8F5273F84E433BA4ACE0DF = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Store/StoreManager.swift";
+            sourceTree = "<group>";
+        };
+		1A12AFCEF55645CB83383DEE = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/ScriptEditor/ScriptEditorView.swift";
+            sourceTree = "<group>";
+        };
+		1BCC3281072A4F389A58DB05 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Store/PaymentTestView.swift";
+            sourceTree = "<group>";
+        };
+		1CEBB9FA4C864C5D9E22C569 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/PIP/PIPManager.swift";
+            sourceTree = "<group>";
+        };
+		26E70AA6F56E4F468AE0BEF8 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Usage/UsageTracker.swift";
+            sourceTree = "<group>";
+        };
+		29A1E39FEE4F4D1EABF0C614 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "folder.assetcatalog";
+            path = "Preview Assets.xcassets";
+            sourceTree = "<group>";
+        };
+		329127C7072E4680A85FA7A3 = {
+            explicitFileType = "wrapper.application";
+            includeInIndex = 0;
+            isa = "PBXFileReference";
+            path = "Teleprompter.app";
+            sourceTree = "BUILT_PRODUCTS_DIR";
+        };
+		3F611657A9224B22BE3A3E93 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Settings/SettingsView.swift";
+            sourceTree = "<group>";
+        };
+		3F7403FA429C40158B746B92 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Supporting/Constants.swift";
+            sourceTree = "<group>";
+        };
+		427ACC3B87C94660A3F6181F = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Store/TicketManager.swift";
+            sourceTree = "<group>";
+        };
+		61EB4C59EFD94E8E891FC0D5 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Store/MembershipView.swift";
+            sourceTree = "<group>";
+        };
+		76F9D1EFE4764185A96D7FAE = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Audio/SpeechDetector.swift";
+            sourceTree = "<group>";
+        };
+		802953711CF34CDA879CEB77 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "text.plist.xml";
+            path = "Teleprompter.entitlements";
+            sourceTree = "<group>";
+        };
+		90F905030EE24999BFCC83C6 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Teleprompter/TeleprompterSettings.swift";
+            sourceTree = "<group>";
+        };
+		9538ACAF8C1349E08FC62181 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Color+Hex.swift";
+            sourceTree = "<group>";
+        };
+		95BD011DBB3242B7B9EFF420 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Teleprompter/TeleprompterControlView.swift";
+            sourceTree = "<group>";
+        };
+		9705655888494043B8F37D73 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "App/TeleprompterApp.swift";
+            sourceTree = "<group>";
+        };
+		9A30ABF13BE34368A9F8BC72 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Models/ScriptModel.swift";
+            sourceTree = "<group>";
+        };
+		9C2E87F0E955495AA0A0AF50 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Usage/FirstLaunchPromptView.swift";
+            sourceTree = "<group>";
+        };
+		A3509D8A40934CD0A18C8DDE = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "App/ContentView.swift";
+            sourceTree = "<group>";
+        };
+		AD49152CAA04413C9DB2B895 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Teleprompter/TeleprompterViewModel.swift";
+            sourceTree = "<group>";
+        };
+		CD9E3FD084244A9B9E76363C = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Store/PaywallView.swift";
+            sourceTree = "<group>";
+        };
+		CDC2121C879042A79D4C7D4B = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Supporting/Extensions/View+Extensions.swift";
+            sourceTree = "<group>";
+        };
+		D189ED8C53AB441DB1BF3EED = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "text.plist.xml";
+            path = "Info.plist";
+            sourceTree = "<group>";
+        };
+		E43BDA5022D14969A9A52F18 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/ScriptEditor/ScriptListView.swift";
+            sourceTree = "<group>";
+        };
+		EE2F19444F3347BABE988B9D = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Services/AudioPermission.swift";
+            sourceTree = "<group>";
+        };
+		F017A27FB9EF4690BC66424E = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/PIP/PIPContentViewController.swift";
+            sourceTree = "<group>";
+        };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C90111A9C45D41EB8FE5ED8E = {
+            buildActionMask = "2147483647";
+            files = (
+
+            );
+            isa = "PBXFrameworksBuildPhase";
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		01DBEBA52FC6457CB8E6193A = {
+            children = (
+                "034C246252944CD5A353BC45",
+                "0C8F5273F84E433BA4ACE0DF",
+                "1BCC3281072A4F389A58DB05",
+                "2201A1957D5943168E5B9C14",
+                "2D0F55E08A5E44C9B4D4EFA1",
+                "427ACC3B87C94660A3F6181F",
+                "5035CCB9205E492398F34153",
+                "61EB4C59EFD94E8E891FC0D5",
+                "7B9B0C54F3204188A18EDF74",
+                "802953711CF34CDA879CEB77",
+                "9538ACAF8C1349E08FC62181",
+                "AC9C032228AF4C6B99F6516B",
+                "CD9E3FD084244A9B9E76363C",
+                "D189ED8C53AB441DB1BF3EED",
+                "ED86F66F9BBE420992341FF5",
+            );
+            isa = "PBXGroup";
+            name = "Teleprompter";
+            path = "Teleprompter";
+            sourceTree = "<group>";
+        };
+		2201A1957D5943168E5B9C14 = {
+            children = (
+                "3B77D40E853F4DA4BF20FC75",
+                "5D261AACBA4A4330A1CFC8FD",
+                "8FABD3E9792D4C21AD7496B8",
+                "96092A6301BD47F692D46D1C",
+                "BDFEF53FF42B438D9CB87B1C",
+                "E83FAC4F0AE14F45AAC4595D",
+            );
+            isa = "PBXGroup";
+            name = "Features";
+            path = "";
+            sourceTree = "<group>";
+        };
+		2D0F55E08A5E44C9B4D4EFA1 = {
+            children = (
+                "09E8A5E1FBFD44B8A5B042D8",
+                "9A30ABF13BE34368A9F8BC72",
+            );
+            isa = "PBXGroup";
+            name = "Models";
+            path = "";
+            sourceTree = "<group>";
+        };
+		3B77D40E853F4DA4BF20FC75 = {
+            children = (
+                "26E70AA6F56E4F468AE0BEF8",
+                "9C2E87F0E955495AA0A0AF50",
+            );
+            isa = "PBXGroup";
+            name = "Usage";
+            path = "";
+            sourceTree = "<group>";
+        };
+		5035CCB9205E492398F34153 = {
+            children = (
+                "01D4BEF8DF2B4ED68F219DD2",
+                "29A1E39FEE4F4D1EABF0C614",
+            );
+            isa = "PBXGroup";
+            name = "Resources";
+            path = "Resources";
+            sourceTree = "<group>";
+        };
+		5A0F01A378D54DB78460E633 = {
+            children = (
+                "01DBEBA52FC6457CB8E6193A",
+                "329127C7072E4680A85FA7A3",
+            );
+            isa = "PBXGroup";
+            sourceTree = "<group>";
+        };
+		5D261AACBA4A4330A1CFC8FD = {
+            children = (
+                "3F611657A9224B22BE3A3E93",
+            );
+            isa = "PBXGroup";
+            name = "Settings";
+            path = "";
+            sourceTree = "<group>";
+        };
+		7B9B0C54F3204188A18EDF74 = {
+            children = (
+                "3F7403FA429C40158B746B92",
+                "AB1170CFD5EC46729A7193CC",
+            );
+            isa = "PBXGroup";
+            name = "Supporting";
+            path = "";
+            sourceTree = "<group>";
+        };
+		8FABD3E9792D4C21AD7496B8 = {
+            children = (
+                "1A12AFCEF55645CB83383DEE",
+                "E43BDA5022D14969A9A52F18",
+            );
+            isa = "PBXGroup";
+            name = "ScriptEditor";
+            path = "";
+            sourceTree = "<group>";
+        };
+		96092A6301BD47F692D46D1C = {
+            children = (
+                "76F9D1EFE4764185A96D7FAE",
+            );
+            isa = "PBXGroup";
+            name = "Audio";
+            path = "";
+            sourceTree = "<group>";
+        };
+		AB1170CFD5EC46729A7193CC = {
+            children = (
+                "CDC2121C879042A79D4C7D4B",
+            );
+            isa = "PBXGroup";
+            name = "Extensions";
+            path = "";
+            sourceTree = "<group>";
+        };
+		AC9C032228AF4C6B99F6516B = {
+            children = (
+                "EE2F19444F3347BABE988B9D",
+            );
+            isa = "PBXGroup";
+            name = "Services";
+            path = "";
+            sourceTree = "<group>";
+        };
+		BDFEF53FF42B438D9CB87B1C = {
+            children = (
+                "90F905030EE24999BFCC83C6",
+                "95BD011DBB3242B7B9EFF420",
+                "AD49152CAA04413C9DB2B895",
+            );
+            isa = "PBXGroup";
+            name = "Teleprompter";
+            path = "";
+            sourceTree = "<group>";
+        };
+		E83FAC4F0AE14F45AAC4595D = {
+            children = (
+                "1CEBB9FA4C864C5D9E22C569",
+                "F017A27FB9EF4690BC66424E",
+            );
+            isa = "PBXGroup";
+            name = "PIP";
+            path = "";
+            sourceTree = "<group>";
+        };
+		ED86F66F9BBE420992341FF5 = {
+            children = (
+                "9705655888494043B8F37D73",
+                "A3509D8A40934CD0A18C8DDE",
+            );
+            isa = "PBXGroup";
+            name = "App";
+            path = "";
+            sourceTree = "<group>";
+        };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		64E919843782411A974CD1B1 = {
+            buildConfigurationList = "1316270368B14DFABEBC72B9";
+            buildPhases = (
+                "211712ED99E5469E972FC415",
+                "C90111A9C45D41EB8FE5ED8E",
+                "E8B160D2046B422E847F9DA6",
+            );
+            buildRules = (
+
+            );
+            dependencies = (
+
+            );
+            isa = "PBXNativeTarget";
+            name = "Teleprompter";
+            productName = "Teleprompter";
+            productReference = "329127C7072E4680A85FA7A3";
+            productType = "com.apple.product-type.application";
+        };
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EFA33C3CCE374954A8BB65C1 = {
+            attributes = {
+                BuildIndependentTargetsInParallel = 1;
+                LastSwiftUpdateCheck = 1620;
+                LastUpgradeCheck = 1620;
+            };
+            buildConfigurationList = "91AAA27A4DB34B69BA1E1527";
+            compatibilityVersion = "Xcode 14.0";
+            developmentRegion = "zh-Hans";
+            hasScannedForEncodings = 0;
+            isa = "PBXProject";
+            knownRegions = (
+                "en",
+                "zh-Hans",
+                "Base",
+            );
+            mainGroup = "5A0F01A378D54DB78460E633";
+            productRefGroup = "01DBEBA52FC6457CB8E6193A";
+            projectDirPath = "";
+            projectRoot = "";
+            targets = (
+                "64E919843782411A974CD1B1",
+            );
+        };
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E8B160D2046B422E847F9DA6 = {
+            buildActionMask = "2147483647";
+            files = (
+                "17FE8BD49E604D1B9BD25489",
+            );
+            isa = "PBXResourcesBuildPhase";
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		211712ED99E5469E972FC415 = {
+            buildActionMask = "2147483647";
+            files = (
+                "077F39D4BF994B6B99564096",
+                "13A7C28F75234021B998A659",
+                "151CF15AD2944F5CB1F8BED8",
+                "15326CE784C244EC9453BBC7",
+                "1717E1D65B814C968E3DAAA8",
+                "1DADB367A9074DB38CAD1F77",
+                "35B211C0EA43440D85E5F9AE",
+                "5343E662F6AC425A9E95E5E5",
+                "5521AF398CA34496926431E5",
+                "5C762EB19FE5444EB318073A",
+                "5DAC55A5417D438ABA09E7E0",
+                "5F425805F3684171B8E13FBD",
+                "67B97AB2EDF84656BD4AB17D",
+                "74E92745C2614D0EA858EE39",
+                "7E9C7D0F496E4F49BE84AAAC",
+                "8B9FDF56EEE141CC8F0044A5",
+                "A7FD512A338A4EE0BDFDC810",
+                "B34289FB7873473E84DFD71D",
+                "BB9C93D91EFF4D86B6E5810C",
+                "C23C9B5AE2D1496C9D783B3C",
+                "C4530FAFE1D94B96882B9615",
+                "D40399EE75AE44558B8E7D90",
+                "E503AB264563472AB1D2180D",
+                "F5C7FAEFF90A412F8A9DA5B5",
+                "F5CFFCD997124D33BC2B6E0D",
+            );
+            isa = "PBXSourcesBuildPhase";
+            runOnlyForDeploymentPostprocessing = 0;
+        };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0D4F7F3858C74AF8BDF8A5B9 = {
+            buildSettings = {
+                ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+                ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+                CODE_SIGN_ENTITLEMENTS = "Teleprompter/Teleprompter.entitlements";
+                CODE_SIGN_STYLE = "Automatic";
+                CURRENT_PROJECT_VERSION = 1;
+                DEVELOPMENT_TEAM = "2P5UG67845";
+                ENABLE_PREVIEWS = "YES";
+                GCC_OPTIMIZATION_LEVEL = "0";
+                INFOPLIST_FILE = "Teleprompter/Info.plist";
+                IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+                LD_RUNPATH_SEARCH_PATHS = (
+                    "$(inherited)",
+                    "@executable_path/Frameworks",
+                );
+                MARKETING_VERSION = "1.0";
+                PRODUCT_BUNDLE_IDENTIFIER = "com.teleprompter.1777642669";
+                PRODUCT_NAME = "Teleprompter";
+                SWIFT_VERSION = "5.0";
+                TARGETED_DEVICE_FAMILY = "1,2";
+            };
+            isa = "XCBuildConfiguration";
+            name = "Debug";
+        };
+		1F144FE1996F4900906678AF = {
+            buildSettings = {
+                ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+                ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+                CODE_SIGN_ENTITLEMENTS = "Teleprompter/Teleprompter.entitlements";
+                CODE_SIGN_STYLE = "Automatic";
+                CURRENT_PROJECT_VERSION = 1;
+                DEVELOPMENT_TEAM = "2P5UG67845";
+                ENABLE_PREVIEWS = "YES";
+                INFOPLIST_FILE = "Teleprompter/Info.plist";
+                IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+                LD_RUNPATH_SEARCH_PATHS = (
+                    "$(inherited)",
+                    "@executable_path/Frameworks",
+                );
+                MARKETING_VERSION = "1.0";
+                PRODUCT_BUNDLE_IDENTIFIER = "com.teleprompter.1777642669";
+                PRODUCT_NAME = "Teleprompter";
+                SWIFT_VERSION = "5.0";
+                TARGETED_DEVICE_FAMILY = "1,2";
+            };
+            isa = "XCBuildConfiguration";
+            name = "Release";
+        };
+		3D6680E27DE44F75867604A2 = {
+            buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = "NO";
+                CLANG_ANALYZER_NONNULL = "YES";
+                CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+                CLANG_ENABLE_MODULES = "YES";
+                CLANG_ENABLE_OBJC_ARC = "YES";
+                DEBUG_INFORMATION_FORMAT = "dwarf";
+                ENABLE_STRICT_OBJC_MSGSEND = "YES";
+                GCC_DYNAMIC_NO_PIC = "NO";
+                GCC_NO_COMMON_BLOCKS = "YES";
+                GCC_OPTIMIZATION_LEVEL = "0";
+                GCC_PREPROCESSOR_DEFINITIONS = (
+                    "DEBUG=1",
+                    "$(inherited)",
+                );
+                IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+                MTL_ENABLE_DEBUG_INFO = "INCLUDE_SOURCE";
+                ONLY_ACTIVE_ARCH = "YES";
+                SDKROOT = "iphoneos";
+                SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+                SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+            };
+            isa = "XCBuildConfiguration";
+            name = "Debug";
+        };
+		B741051884CA4A958F5AF935 = {
+            buildSettings = {
+                ALWAYS_SEARCH_USER_PATHS = "NO";
+                CLANG_ANALYZER_NONNULL = "YES";
+                CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+                CLANG_ENABLE_MODULES = "YES";
+                CLANG_ENABLE_OBJC_ARC = "YES";
+                COPY_PHASE_STRIP = "NO";
+                DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+                ENABLE_NS_ASSERTIONS = "NO";
+                ENABLE_STRICT_OBJC_MSGSEND = "YES";
+                GCC_NO_COMMON_BLOCKS = "YES";
+                GCC_OPTIMIZATION_LEVEL = "s";
+                IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+                MTL_ENABLE_DEBUG_INFO = "NO";
+                SDKROOT = "iphoneos";
+                SWIFT_COMPILATION_MODE = "wholemodule";
+                SWIFT_OPTIMIZATION_LEVEL = "-O";
+                VALIDATE_PRODUCT = "YES";
+            };
+            isa = "XCBuildConfiguration";
+            name = "Release";
+        };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1316270368B14DFABEBC72B9 = {
+            buildConfigurations = (
+                "0D4F7F3858C74AF8BDF8A5B9",
+                "1F144FE1996F4900906678AF",
+            );
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = "Release";
+            isa = "XCConfigurationList";
+        };
+		91AAA27A4DB34B69BA1E1527 = {
+            buildConfigurations = (
+                "3D6680E27DE44F75867604A2",
+                "B741051884CA4A958F5AF935",
+            );
+            defaultConfigurationIsVisible = 0;
+            defaultConfigurationName = "Release";
+            isa = "XCConfigurationList";
+        };
+/* End XCConfigurationList section */
+	};
+	rootObject = EFA33C3CCE374954A8BB65C1;
+}
