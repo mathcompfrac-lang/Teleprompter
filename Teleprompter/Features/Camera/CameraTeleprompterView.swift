@@ -277,16 +277,17 @@ struct CameraTeleprompterView: View {
             Spacer()
 
             ScrollView(.horizontal) {
-                HStack(spacing: 10) {
+                HStack(spacing: 18) {
                     ForEach(camera.savedClips) { clip in
                         savedClipThumbnail(clip)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 22)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
             }
             .scrollIndicators(.hidden)
-            .frame(height: 104)
+            .frame(height: 116)
             .padding(.bottom, 104)
         }
     }
@@ -334,7 +335,7 @@ struct CameraTeleprompterView: View {
                     .tint(.white)
                     .frame(width: 28, height: 28)
                     .background(.black.opacity(0.78), in: Circle())
-                    .padding(4)
+                    .offset(x: 10, y: -10)
             } else {
                 Button {
                     camera.deleteSavedClip(clip)
@@ -346,7 +347,7 @@ struct CameraTeleprompterView: View {
                         .background(.black.opacity(0.78), in: Circle())
                 }
                 .buttonStyle(.plain)
-                .padding(4)
+                .offset(x: 10, y: -10)
                 .disabled(savedClipInteractionDisabled)
                 .accessibilityLabel("删除录像")
             }
@@ -566,15 +567,115 @@ struct CameraTeleprompterView: View {
 
 // MARK: - Recorded video preview
 
+@MainActor
+private final class RecordedVideoPlaybackController: ObservableObject {
+    let player: AVPlayer
+
+    @Published private(set) var currentTime: Double = 0
+    @Published private(set) var duration: Double = 0
+
+    private var timeObserver: Any?
+    private var isSeeking = false
+    private var shouldResumeAfterSeeking = false
+    private var isActive = false
+    private var seekGeneration = 0
+
+    init(url: URL) {
+        player = AVPlayer(url: url)
+    }
+
+    deinit {
+        if let timeObserver {
+            player.removeTimeObserver(timeObserver)
+        }
+    }
+
+    func start() {
+        isActive = true
+        installTimeObserverIfNeeded()
+        player.seek(to: .zero)
+        player.play()
+    }
+
+    func stop() {
+        isActive = false
+        seekGeneration += 1
+        player.pause()
+        player.currentItem?.cancelPendingSeeks()
+        if let timeObserver {
+            player.removeTimeObserver(timeObserver)
+            self.timeObserver = nil
+        }
+        isSeeking = false
+        shouldResumeAfterSeeking = false
+    }
+
+    func beginSeeking() {
+        guard duration > 0 else { return }
+        if !isSeeking {
+            shouldResumeAfterSeeking = player.timeControlStatus != .paused
+        }
+        seekGeneration += 1
+        isSeeking = true
+        player.pause()
+    }
+
+    func updateSeekPosition(_ seconds: Double) {
+        currentTime = max(0, min(duration, seconds))
+    }
+
+    func endSeeking() {
+        guard isSeeking else { return }
+        let target = CMTime(seconds: currentTime, preferredTimescale: 600)
+        let shouldResume = shouldResumeAfterSeeking
+        let generation = seekGeneration
+        player.seek(
+            to: target,
+            toleranceBefore: .zero,
+            toleranceAfter: .zero
+        ) { [weak self] finished in
+            DispatchQueue.main.async {
+                guard let self,
+                      self.seekGeneration == generation else { return }
+                self.isSeeking = false
+                self.shouldResumeAfterSeeking = false
+                if self.isActive, shouldResume, finished {
+                    self.player.play()
+                }
+            }
+        }
+    }
+
+    private func installTimeObserverIfNeeded() {
+        guard timeObserver == nil else { return }
+        let interval = CMTime(seconds: 0.2, preferredTimescale: 600)
+        timeObserver = player.addPeriodicTimeObserver(
+            forInterval: interval,
+            queue: .main
+        ) { [weak self] time in
+            guard let self, self.isActive else { return }
+            let durationSeconds = self.player.currentItem?.duration.seconds ?? 0
+            if durationSeconds.isFinite, durationSeconds > 0 {
+                self.duration = durationSeconds
+            }
+            guard !self.isSeeking else { return }
+            let seconds = time.seconds
+            if seconds.isFinite {
+                self.currentTime = max(0, min(self.duration, seconds))
+            }
+        }
+    }
+}
+
 private struct RecordedVideoPreviewView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let clip: CameraCaptureController.RecordedClip
-    @State private var player: AVPlayer
+    @StateObject private var playback: RecordedVideoPlaybackController
 
     init(clip: CameraCaptureController.RecordedClip) {
-        self.clip = clip
-        _player = State(initialValue: AVPlayer(url: clip.fileURL))
+        _playback = StateObject(
+            wrappedValue: RecordedVideoPlaybackController(url: clip.fileURL)
+        )
     }
 
     var body: some View {
@@ -582,7 +683,7 @@ private struct RecordedVideoPreviewView: View {
             Color.black
                 .ignoresSafeArea()
 
-            VideoPlayer(player: player)
+            VideoPlayer(player: playback.player)
                 .ignoresSafeArea()
 
             VStack {
@@ -604,16 +705,57 @@ private struct RecordedVideoPreviewView: View {
                 .padding(.top, 8)
 
                 Spacer()
+
+                playbackScrubber
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 14)
             }
         }
         .statusBarHidden(true)
         .onAppear {
-            player.seek(to: .zero)
-            player.play()
+            playback.start()
         }
         .onDisappear {
-            player.pause()
+            playback.stop()
         }
+    }
+
+    private var playbackScrubber: some View {
+        VStack(spacing: 8) {
+            Slider(
+                value: Binding(
+                    get: { playback.currentTime },
+                    set: { playback.updateSeekPosition($0) }
+                ),
+                in: 0...max(playback.duration, 0.01),
+                onEditingChanged: { isEditing in
+                    if isEditing {
+                        playback.beginSeeking()
+                    } else {
+                        playback.endSeeking()
+                    }
+                }
+            )
+            .tint(.white)
+            .disabled(playback.duration <= 0)
+
+            HStack {
+                Text(formatPlaybackTime(playback.currentTime))
+                Spacer()
+                Text(formatPlaybackTime(playback.duration))
+            }
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.white.opacity(0.9))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.black.opacity(0.62), in: RoundedRectangle(cornerRadius: 14))
+    }
+
+    private func formatPlaybackTime(_ seconds: Double) -> String {
+        guard seconds.isFinite, seconds >= 0 else { return "00:00" }
+        let totalSeconds = Int(seconds.rounded(.down))
+        return String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
     }
 }
 
