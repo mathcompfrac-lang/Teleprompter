@@ -21,9 +21,6 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var settings: [SettingsModel]
 
-    // MARK: - 状态对象
-    @StateObject private var ticketManager = TicketManager.shared
-
     // MARK: - 本地状态
     @State private var fontSize: Double = Constants.defaultFontSize
     @State private var scrollSpeed: Double = Constants.defaultScrollSpeed
@@ -34,17 +31,6 @@ struct SettingsView: View {
     @State private var pipOpacity: Double = 0.85
     @State private var textColorHex: String = "#000000"
     @State private var highlightColorHex: String = "#FFD700"
-
-    // MARK: - 计算属性
-    private var membershipStatusText: String {
-        if ticketManager.currentTicket != nil {
-            return "会员"
-        } else if ticketManager.canUseFeature {
-            return "剩余 \(ticketManager.freeUsesRemaining) 次"
-        } else {
-            return "需购买"
-        }
-    }
 
     // MARK: - 主体
 
@@ -233,23 +219,6 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.menu)
-                }
-
-                // MARK: 会员中心
-                Section {
-                    NavigationLink {
-                        MembershipView()
-                    } label: {
-                        HStack {
-                            Image(systemName: "crown.fill")
-                                .foregroundColor(.yellow)
-                            Text("会员中心")
-                            Spacer()
-                            Text(membershipStatusText)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
                 }
 
                 // MARK: 关于

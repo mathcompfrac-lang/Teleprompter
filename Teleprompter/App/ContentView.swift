@@ -18,8 +18,6 @@ struct ContentView: View {
     // MARK: - 状态对象
 
     @StateObject private var pipManager = PIPManager.shared
-    @StateObject private var usageTracker = UsageTracker.shared
-    @StateObject private var ticketManager = TicketManager.shared
 
     // MARK: - 本地状态
 
@@ -27,7 +25,6 @@ struct ContentView: View {
     @State private var showScriptList = false
     @State private var showSettings = false
     @State private var showAudioPermission = false
-    @State private var showUsageLimit = false
     @State private var showNewScript = false
     @State private var showPIPUnavailableAlert = false
     @State private var isPIPStarting = false
@@ -45,9 +42,6 @@ struct ContentView: View {
     @State private var countdownValue = 3
     @State private var countdownTimer: Timer?
     
-    // MARK: - 付费墙状态
-    @State private var showPaywall = false
-
     private func reloadTheme() {
         let raw = UserDefaults.standard.string(forKey: "themeMode")
             ?? ThemeMode.system.rawValue
@@ -69,10 +63,7 @@ struct ContentView: View {
             Color.teleprompterBackground
                 .ignoresSafeArea()
 
-            if showUsageLimit {
-                // 用完
-                UsageLimitView(tracker: usageTracker)
-            } else if showAudioPermission {
+            if showAudioPermission {
                 // 未授权麦克风
                 AudioPermissionView(onGranted: {
                     withAnimation { showAudioPermission = false }
@@ -133,9 +124,6 @@ struct ContentView: View {
                     }
                 }
             )
-        }
-        .sheet(isPresented: $showPaywall) {
-            PaywallView()
         }
         .alert("画中画不可用", isPresented: $showPIPUnavailableAlert) {
             Button("知道了", role: .cancel) {}
@@ -241,14 +229,6 @@ struct ContentView: View {
                         .font(.system(size: 25))
                 }
 
-                // 试用剩余
-                if usageTracker.remainingUses > 0 {
-                    Text("\(usageTracker.remainingUses)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(6)
-                        .background(Circle().fill(Color.teleprompterSecondaryBackground))
-                }
             }
         }
         .padding(.horizontal)
@@ -388,11 +368,6 @@ struct ContentView: View {
         // 创建设置模型（如不存在）
         createInitialSettingsIfNeeded()
 
-        // 检查试用
-        if usageTracker.isLocked {
-            showUsageLimit = true
-        }
-
         // 检查麦克风权限
         if AudioPermission.status == .notDetermined {
             // 暂不显示权限页，首次启动提词时再请求
@@ -429,15 +404,6 @@ struct ContentView: View {
         // 加载设置
         loadSettingsIntoViewModel()
 
-        // 记录试用
-        _ = usageTracker.recordUsage()
-        if usageTracker.isLocked {
-            showUsageLimit = true
-        }
-
-        // 加载凭证状态
-        ticketManager.loadState()
-
         showScriptList = false
     }
 
@@ -452,12 +418,6 @@ struct ContentView: View {
 
     private func startPIP() {
         let vm = viewModel
-
-        // 检查使用权限（免费次数或付费凭证）
-        if !ticketManager.canUseFeature {
-            showPaywall = true
-            return
-        }
 
         // 检查画中画是否支持
         guard pipManager.isPIPAvailable else {
@@ -539,9 +499,6 @@ struct ContentView: View {
         )
 
         if success {
-            // 扣除使用次数
-            ticketManager.consumeUse()
-            
             // 同步当前进度
             pipManager.setScrollProgress(vm.scrollProgress)
 
