@@ -1,0 +1,54 @@
+name: Build Teleprompter IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Select latest Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Resolve Swift Package dependencies
+        run: |
+          xcodebuild \
+            -resolvePackageDependencies \
+            -project Teleprompter.xcodeproj
+
+      - name: Build App
+        run: |
+          xcodebuild \
+            -project Teleprompter.xcodeproj \
+            -scheme Teleprompter \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package IPA
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "Teleprompter.app" | head -1)
+
+          mkdir Payload
+          cp -R "$APP_PATH" Payload/
+
+          zip -r Teleprompter.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Teleprompter-IPA
+          path: Teleprompter.ipa
