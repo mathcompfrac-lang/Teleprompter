@@ -9,12 +9,54 @@ import UIKit
 @MainActor
 final class CameraCaptureController: NSObject, ObservableObject {
 
+    enum SubtitleGenerationState: Equatable {
+        case notStarted
+        case transcribing(progress: Double)
+        case rendering(progress: Double)
+        case saving
+        case completed
+        case failed(message: String)
+
+        var isProcessing: Bool {
+            switch self {
+            case .transcribing, .rendering, .saving:
+                return true
+            case .notStarted, .completed, .failed:
+                return false
+            }
+        }
+
+        /// 统一映射为完整流水线进度，避免从识别切到渲染时进度回退。
+        var overallProgress: Double {
+            switch self {
+            case .notStarted, .failed:
+                return 0
+            case .transcribing(let progress):
+                return min(max(progress, 0), 1) * 0.6
+            case .rendering(let progress):
+                return 0.6 + min(max(progress, 0), 1) * 0.35
+            case .saving:
+                return 0.98
+            case .completed:
+                return 1
+            }
+        }
+    }
+
     struct RecordedClip: Identifiable {
         let assetIdentifier: String
         let fileURL: URL
         let thumbnail: UIImage?
+        var subtitleCues: [SubtitleCue] = []
+        var subtitleGenerationState: SubtitleGenerationState = .notStarted
+        var subtitledAssetIdentifier: String?
+        var subtitledFileURL: URL?
 
         var id: String { assetIdentifier }
+
+        var previewURL: URL {
+            subtitledFileURL ?? fileURL
+        }
     }
 
     // MARK: - Published state
@@ -35,6 +77,11 @@ final class CameraCaptureController: NSObject, ObservableObject {
     @Published private(set) var hasPendingSave = false
     @Published private(set) var savedClips: [RecordedClip] = []
     @Published private(set) var deletingClipIdentifier: String?
+    @Published private(set) var subtitleProcessingClipIdentifier: String?
+
+    var isGeneratingSubtitles: Bool {
+        subtitleProcessingClipIdentifier != nil
+    }
 
     /// 供 `CameraPreviewView(session:device:)` 显示实时画面。
     let session = AVCaptureSession()
@@ -63,6 +110,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     private var photoDeletedClipIdentifiers: Set<String> = []
     private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
     private var notificationTokens: [NSObjectProtocol] = []
+    private var subtitleGenerationTask: Task<Void, Never>?
 
     override init() {
         temporaryDirectory = FileManager.default.temporaryDirectory
@@ -75,6 +123,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
 
     deinit {
         permissionTask?.cancel()
+        subtitleGenerationTask?.cancel()
         notificationTokens.forEach(NotificationCenter.default.removeObserver)
 
         let session = session
@@ -527,16 +576,193 @@ final class CameraCaptureController: NSObject, ObservableObject {
         removeTemporaryRecording(at: pendingSaveURL)
     }
 
-    func deleteSavedClip(_ clip: RecordedClip) {
+    func generateSubtitledVideo(for clip: RecordedClip) {
         guard !isSaving,
-              deletingClipIdentifier == nil,
-              savedClips.contains(where: { $0.id == clip.id }) else { return }
+              deletingClipIdentifier == nil else {
+            errorMessage = "请等待当前视频操作完成"
+            return
+        }
+        guard subtitleProcessingClipIdentifier == nil else {
+            errorMessage = "请等待当前字幕视频生成完成"
+            return
+        }
+        guard let currentClip = savedClips.first(where: { $0.id == clip.id }) else {
+            errorMessage = "找不到需要生成字幕的视频"
+            return
+        }
+        guard currentClip.subtitleGenerationState != .completed else { return }
+        guard FileManager.default.fileExists(atPath: currentClip.fileURL.path) else {
+            updateSavedClip(identifier: currentClip.id) {
+                $0.subtitleGenerationState = .failed(message: "原视频临时文件已失效，请重新录制")
+            }
+            return
+        }
 
         errorMessage = nil
         saveConfirmation = nil
-        deletingClipIdentifier = clip.id
+        subtitleProcessingClipIdentifier = currentClip.id
+        updateSavedClip(identifier: currentClip.id) {
+            $0.subtitleCues = []
+            $0.subtitleGenerationState = .transcribing(progress: 0)
+        }
+
+        subtitleGenerationTask = Task { [weak self] in
+            guard let self else { return }
+            await self.performSubtitleGeneration(
+                clipIdentifier: currentClip.id,
+                sourceURL: currentClip.fileURL
+            )
+        }
+    }
+
+    func cancelSubtitleGeneration(for clip: RecordedClip) {
+        guard subtitleProcessingClipIdentifier == clip.id,
+              let currentClip = savedClips.first(where: { $0.id == clip.id }) else { return }
+        guard currentClip.subtitleGenerationState != .saving else { return }
+        cancelSubtitleGeneration()
+    }
+
+    func cancelSubtitleGeneration() {
+        guard let identifier = subtitleProcessingClipIdentifier,
+              let currentClip = savedClips.first(where: { $0.id == identifier }),
+              currentClip.subtitleGenerationState != .saving else { return }
+        subtitleGenerationTask?.cancel()
+        HardSubtitleRenderer.shared.cancel()
+    }
+
+    private func performSubtitleGeneration(
+        clipIdentifier: String,
+        sourceURL: URL
+    ) async {
+        var renderedURL: URL?
+        defer {
+            if subtitleProcessingClipIdentifier == clipIdentifier {
+                subtitleProcessingClipIdentifier = nil
+                subtitleGenerationTask = nil
+            }
+        }
+
+        do {
+            let cues = try await LocalSubtitleTranscriber.shared.transcribeVideo(
+                at: sourceURL,
+                locale: Locale(identifier: "zh-CN")
+            ) { [weak self] progress in
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          self.subtitleProcessingClipIdentifier == clipIdentifier else { return }
+                    self.updateSavedClip(identifier: clipIdentifier) {
+                        guard case .transcribing = $0.subtitleGenerationState else { return }
+                        $0.subtitleGenerationState = .transcribing(
+                            progress: progress.fractionCompleted
+                        )
+                    }
+                }
+            }
+
+            try Task.checkCancellation()
+            guard savedClips.contains(where: { $0.id == clipIdentifier }) else {
+                throw CancellationError()
+            }
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.subtitleCues = cues
+                $0.subtitleGenerationState = .rendering(progress: 0)
+            }
+
+            let destinationURL = temporaryDirectory
+                .appendingPathComponent("\(UUID().uuidString)-subtitled")
+                .appendingPathExtension("mov")
+            renderedURL = try await HardSubtitleRenderer.shared.render(
+                videoURL: sourceURL,
+                cues: cues,
+                outputURL: destinationURL
+            ) { [weak self] progress in
+                guard let self,
+                      self.subtitleProcessingClipIdentifier == clipIdentifier else { return }
+                self.updateSavedClip(identifier: clipIdentifier) {
+                    guard case .rendering = $0.subtitleGenerationState else { return }
+                    $0.subtitleGenerationState = .rendering(progress: progress)
+                }
+            }
+
+            try Task.checkCancellation()
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.subtitleGenerationState = .saving
+            }
+            let subtitledAssetIdentifier = try await saveSubtitledVideoToPhotoLibrary(
+                at: destinationURL
+            )
+
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.subtitledAssetIdentifier = subtitledAssetIdentifier
+                $0.subtitledFileURL = destinationURL
+                $0.subtitleGenerationState = .completed
+            }
+        } catch is CancellationError {
+            if let renderedURL {
+                try? FileManager.default.removeItem(at: renderedURL)
+            }
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.subtitleCues = []
+                $0.subtitleGenerationState = .notStarted
+            }
+        } catch {
+            if let renderedURL {
+                try? FileManager.default.removeItem(at: renderedURL)
+            }
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.subtitleGenerationState = .failed(message: error.localizedDescription)
+            }
+        }
+    }
+
+    private func saveSubtitledVideoToPhotoLibrary(at outputURL: URL) async throws -> String {
+        guard FileManager.default.fileExists(atPath: outputURL.path) else {
+            throw CameraCaptureFailure("字幕版视频文件不存在")
+        }
+
+        if PHPhotoLibrary.authorizationStatus(for: .addOnly) == .notDetermined {
+            photoPermissionStatus = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        } else {
+            photoPermissionStatus = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+        }
+        guard photoPermissionStatus == .authorized || photoPermissionStatus == .limited else {
+            throw CameraCaptureFailure(permissionMessage(for: photoPermissionStatus))
+        }
+
+        let identifierBox = SavedAssetIdentifierBox()
+        try await PHPhotoLibrary.shared().performChanges {
+            identifierBox.value = PHAssetChangeRequest
+                .creationRequestForAssetFromVideo(atFileURL: outputURL)?
+                .placeholderForCreatedAsset?
+                .localIdentifier
+        }
+        guard let identifier = identifierBox.value else {
+            throw CameraCaptureFailure("系统未创建字幕版照片资源")
+        }
+        return identifier
+    }
+
+    private func updateSavedClip(
+        identifier: String,
+        mutation: (inout RecordedClip) -> Void
+    ) {
+        guard let index = savedClips.firstIndex(where: { $0.id == identifier }) else { return }
+        var clip = savedClips[index]
+        mutation(&clip)
+        savedClips[index] = clip
+    }
+
+    func deleteSavedClip(_ clip: RecordedClip) {
+        guard !isSaving,
+              deletingClipIdentifier == nil,
+              let currentClip = savedClips.first(where: { $0.id == clip.id }),
+              !currentClip.subtitleGenerationState.isProcessing else { return }
+
+        errorMessage = nil
+        saveConfirmation = nil
+        deletingClipIdentifier = currentClip.id
         Task { [weak self] in
-            await self?.deleteSavedClipFromPhotoLibrary(clip)
+            await self?.deleteSavedClipFromPhotoLibrary(currentClip)
         }
     }
 
@@ -627,8 +853,10 @@ final class CameraCaptureController: NSObject, ObservableObject {
             return
         }
 
+        let assetIdentifiers = [clip.assetIdentifier, clip.subtitledAssetIdentifier]
+            .compactMap { $0 }
         let assets = PHAsset.fetchAssets(
-            withLocalIdentifiers: [clip.assetIdentifier],
+            withLocalIdentifiers: assetIdentifiers,
             options: nil
         )
         guard assets.count > 0 else {
@@ -638,6 +866,10 @@ final class CameraCaptureController: NSObject, ObservableObject {
             }
             photoDeletedClipIdentifiers.insert(clip.id)
             await finishDeletingSavedClip(clip)
+            return
+        }
+        if status == .limited, assets.count < assetIdentifiers.count {
+            errorMessage = "无法访问这段录像的全部版本，请前往系统设置允许访问全部照片后重试"
             return
         }
 
@@ -653,7 +885,12 @@ final class CameraCaptureController: NSObject, ObservableObject {
     }
 
     private func finishDeletingSavedClip(_ clip: RecordedClip) async {
-        guard await removeTemporaryRecordingAndReport(at: clip.fileURL) else {
+        var localFilesRemoved = await removeTemporaryRecordingAndReport(at: clip.fileURL)
+        if let subtitledFileURL = clip.subtitledFileURL {
+            localFilesRemoved = await removeTemporaryRecordingAndReport(at: subtitledFileURL)
+                && localFilesRemoved
+        }
+        guard localFilesRemoved else {
             errorMessage = "系统相册视频已删除，但本地预览文件清理失败，请重试"
             return
         }

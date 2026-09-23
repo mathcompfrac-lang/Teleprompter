@@ -119,6 +119,22 @@
             fileRef = "F726B186649C494A99E6765F";
             isa = "PBXBuildFile";
         };
+		9A1C7E2F4B6D8A0C1E3F5A7B = {
+            fileRef = "8B2D7F3A5C9E1B4D6F8A0C2B";
+            isa = "PBXBuildFile";
+        };
+		9A1C7E2F4B6D8A0C1E3F5A7C = {
+            fileRef = "8B2D7F3A5C9E1B4D6F8A0C2C";
+            isa = "PBXBuildFile";
+        };
+		9A1C7E2F4B6D8A0C1E3F5A7D = {
+            fileRef = "8B2D7F3A5C9E1B4D6F8A0C2D";
+            isa = "PBXBuildFile";
+        };
+		9A1C7E2F4B6D8A0C1E3F5A7E = {
+            fileRef = "8B2D7F3A5C9E1B4D6F8A0C2E";
+            isa = "PBXBuildFile";
+        };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -315,6 +331,30 @@
             path = "Features/Camera/CameraTeleprompterView.swift";
             sourceTree = "<group>";
         };
+		8B2D7F3A5C9E1B4D6F8A0C2B = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Subtitle/SubtitleModels.swift";
+            sourceTree = "<group>";
+        };
+		8B2D7F3A5C9E1B4D6F8A0C2C = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Subtitle/LocalSubtitleTranscriber.swift";
+            sourceTree = "<group>";
+        };
+		8B2D7F3A5C9E1B4D6F8A0C2D = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Subtitle/HardSubtitleRenderer.swift";
+            sourceTree = "<group>";
+        };
+		8B2D7F3A5C9E1B4D6F8A0C2E = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "text.json.xcstrings";
+            path = "Localizable.xcstrings";
+            sourceTree = "<group>";
+        };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -361,6 +401,7 @@
                 "BDFEF53FF42B438D9CB87B1C",
                 "E83FAC4F0AE14F45AAC4595D",
                 "F2CBC558492940408C596F82",
+                "7C3E8A4B6D0F2C5E7A9B1D3E",
             );
             isa = "PBXGroup";
             name = "Features";
@@ -391,6 +432,7 @@
             children = (
                 "01D4BEF8DF2B4ED68F219DD2",
                 "29A1E39FEE4F4D1EABF0C614",
+                "8B2D7F3A5C9E1B4D6F8A0C2E",
             );
             isa = "PBXGroup";
             name = "Resources";
@@ -450,6 +492,17 @@
             );
             isa = "PBXGroup";
             name = "Camera";
+            path = "";
+            sourceTree = "<group>";
+        };
+		7C3E8A4B6D0F2C5E7A9B1D3E = {
+            children = (
+                "8B2D7F3A5C9E1B4D6F8A0C2B",
+                "8B2D7F3A5C9E1B4D6F8A0C2C",
+                "8B2D7F3A5C9E1B4D6F8A0C2D",
+            );
+            isa = "PBXGroup";
+            name = "Subtitle";
             path = "";
             sourceTree = "<group>";
         };
@@ -541,6 +594,7 @@
             knownRegions = (
                 "en",
                 "zh-Hans",
+                "zh-Hant",
                 "Base",
             );
             mainGroup = "5A0F01A378D54DB78460E633";
@@ -558,6 +612,7 @@
             buildActionMask = "2147483647";
             files = (
                 "17FE8BD49E604D1B9BD25489",
+                "9A1C7E2F4B6D8A0C1E3F5A7E",
             );
             isa = "PBXResourcesBuildPhase";
             runOnlyForDeploymentPostprocessing = 0;
@@ -595,6 +650,9 @@
                 "F5C7FAEFF90A412F8A9DA5B5",
                 "F5CFFCD997124D33BC2B6E0D",
                 "5FA4E2F3504A4FF684A095E8",
+                "9A1C7E2F4B6D8A0C1E3F5A7B",
+                "9A1C7E2F4B6D8A0C1E3F5A7C",
+                "9A1C7E2F4B6D8A0C1E3F5A7D",
             );
             isa = "PBXSourcesBuildPhase";
             runOnlyForDeploymentPostprocessing = 0;

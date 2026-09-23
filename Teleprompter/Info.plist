@@ -33,7 +33,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>悬浮提词器需要照片访问权限来删除您在提词拍摄中保存的视频。</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>悬浮提词器需要语音识别权限来精确追踪您朗读的位置，实现逐字高亮。</string>
+	<string>悬浮提词器使用设备端语音识别来追踪朗读位置，并为您录制的视频生成同步字幕。</string>
 	<key>UIApplicationSupportsMultipleScenes</key>
 	<false/>
 	<key>UIBackgroundModes</key>
