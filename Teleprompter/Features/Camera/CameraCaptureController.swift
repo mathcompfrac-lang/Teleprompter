@@ -28,6 +28,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     @Published private(set) var isRecording = false
     @Published private(set) var isSaving = false
     @Published private(set) var cameraPosition: AVCaptureDevice.Position = .front
+    @Published private(set) var activeVideoDevice: AVCaptureDevice?
     @Published private(set) var errorMessage: String?
     @Published private(set) var saveConfirmation: String?
     @Published private(set) var lastSavedAssetIdentifier: String?
@@ -35,7 +36,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     @Published private(set) var savedClips: [RecordedClip] = []
     @Published private(set) var deletingClipIdentifier: String?
 
-    /// 供 `CameraPreviewView(session:)` 显示实时画面。
+    /// 供 `CameraPreviewView(session:device:)` 显示实时画面。
     let session = AVCaptureSession()
 
     private let movieOutput = AVCaptureMovieFileOutput()
@@ -60,7 +61,6 @@ final class CameraCaptureController: NSObject, ObservableObject {
     private var isStartingRecording = false
     private var pendingSaveURL: URL?
     private var photoDeletedClipIdentifiers: Set<String> = []
-    private var activeVideoDevice: AVCaptureDevice?
     private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
     private var notificationTokens: [NSObjectProtocol] = []
 
@@ -447,9 +447,9 @@ final class CameraCaptureController: NSObject, ObservableObject {
     }
 
     private func didActivateVideoDevice(_ device: AVCaptureDevice) {
-        activeVideoDevice = device
         cameraPosition = device.position
         rotationCoordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: nil)
+        activeVideoDevice = device
     }
 
     // MARK: - Saving
@@ -942,10 +942,16 @@ extension CameraCaptureController: AVCaptureFileOutputRecordingDelegate {
 /// 它不会进入 `AVCaptureMovieFileOutput` 输出的视频。
 struct CameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
+    let device: AVCaptureDevice?
     var onDismantle: (() -> Void)?
 
-    init(session: AVCaptureSession, onDismantle: (() -> Void)? = nil) {
+    init(
+        session: AVCaptureSession,
+        device: AVCaptureDevice?,
+        onDismantle: (() -> Void)? = nil
+    ) {
         self.session = session
+        self.device = device
         self.onDismantle = onDismantle
     }
 
@@ -953,12 +959,14 @@ struct CameraPreviewView: UIViewRepresentable {
         let view = CameraPreviewUIView()
         view.onDismantle = onDismantle
         view.setSession(session)
+        view.setVideoDevice(device)
         return view
     }
 
     func updateUIView(_ uiView: CameraPreviewUIView, context: Context) {
         uiView.onDismantle = onDismantle
         uiView.setSession(session)
+        uiView.setVideoDevice(device)
     }
 
     static func dismantleUIView(_ uiView: CameraPreviewUIView, coordinator: ()) {
@@ -984,6 +992,7 @@ final class CameraPreviewUIView: UIView {
     private var previewRotationObservation: NSKeyValueObservation?
     private var sessionStartObserver: NSObjectProtocol?
     private var currentDeviceID: String?
+    private var videoDevice: AVCaptureDevice?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -1003,7 +1012,7 @@ final class CameraPreviewUIView: UIView {
 
     func setSession(_ session: AVCaptureSession) {
         guard previewLayer.session !== session else {
-            refreshRotationCoordinatorIfNeeded()
+            applyPreviewRotation()
             return
         }
         if let sessionStartObserver {
@@ -1015,63 +1024,74 @@ final class CameraPreviewUIView: UIView {
             object: session,
             queue: .main
         ) { [weak self] _ in
-            self?.refreshRotationCoordinatorIfNeeded()
+            self?.applyPreviewRotation()
         }
-        refreshRotationCoordinatorIfNeeded()
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        refreshRotationCoordinatorIfNeeded()
         applyPreviewRotation()
     }
 
-    func prepareForRemoval() {
-        previewRotationObservation = nil
-        rotationCoordinator = nil
-        currentDeviceID = nil
-        previewLayer.session = nil
-    }
-
-    private func refreshRotationCoordinatorIfNeeded() {
-        guard let deviceInput = previewLayer.session?.inputs
-            .compactMap({ $0 as? AVCaptureDeviceInput })
-            .first(where: { $0.device.hasMediaType(.video) }) else { return }
-        let device = deviceInput.device
-        guard currentDeviceID != device.uniqueID else {
+    func setVideoDevice(_ device: AVCaptureDevice?) {
+        guard currentDeviceID != device?.uniqueID else {
             applyPreviewRotation()
             return
         }
 
-        currentDeviceID = device.uniqueID
         previewRotationObservation = nil
-        let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: previewLayer)
+        rotationCoordinator = nil
+        videoDevice = device
+        currentDeviceID = device?.uniqueID
+
+        guard let device else { return }
+        let coordinator = AVCaptureDevice.RotationCoordinator(
+            device: device,
+            previewLayer: previewLayer
+        )
         rotationCoordinator = coordinator
         previewRotationObservation = coordinator.observe(
             \.videoRotationAngleForHorizonLevelPreview,
             options: [.initial, .new]
-        ) { [weak self] _, _ in
-            DispatchQueue.main.async { [weak self] in
-                self?.applyPreviewRotation()
-            }
+        ) { [weak self] observedCoordinator, _ in
+            guard let self,
+                  self.rotationCoordinator === observedCoordinator else { return }
+            self.applyPreviewRotation()
         }
         applyPreviewRotation()
+
+        let deviceID = device.uniqueID
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.currentDeviceID == deviceID else { return }
+            self.applyPreviewRotation()
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        applyPreviewRotation()
+    }
+
+    func prepareForRemoval() {
+        if let sessionStartObserver {
+            NotificationCenter.default.removeObserver(sessionStartObserver)
+            self.sessionStartObserver = nil
+        }
+        previewRotationObservation = nil
+        rotationCoordinator = nil
+        videoDevice = nil
+        currentDeviceID = nil
+        previewLayer.session = nil
     }
 
     private func applyPreviewRotation() {
         guard let connection = previewLayer.connection,
-              let rotationCoordinator else { return }
+              let rotationCoordinator,
+              let videoDevice,
+              currentDeviceID == videoDevice.uniqueID else { return }
         let angle = rotationCoordinator.videoRotationAngleForHorizonLevelPreview
         if connection.isVideoRotationAngleSupported(angle) {
             connection.videoRotationAngle = angle
         }
-        let isFrontCamera = previewLayer.session?.inputs
-            .compactMap({ $0 as? AVCaptureDeviceInput })
-            .first(where: { $0.device.hasMediaType(.video) })?
-            .device.position == .front
         if connection.isVideoMirroringSupported {
             connection.automaticallyAdjustsVideoMirroring = false
-            connection.isVideoMirrored = isFrontCamera
+            connection.isVideoMirrored = videoDevice.position == .front
         }
     }
 }

@@ -33,7 +33,7 @@ struct CameraTeleprompterView: View {
 
     var body: some View {
         ZStack {
-            CameraPreviewView(session: camera.session)
+            CameraPreviewView(session: camera.session, device: camera.activeVideoDevice)
                 .ignoresSafeArea()
 
             if !camera.isRunning {
