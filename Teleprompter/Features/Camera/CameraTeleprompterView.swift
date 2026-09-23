@@ -21,6 +21,8 @@ struct CameraTeleprompterView: View {
     @State private var panelDragOrigin = CGSize.zero
     @State private var resizeOrigin = CGSize(width: 340, height: 280)
     @State private var didInitializePanel = false
+    @State private var hasUserMovedPanel = false
+    @State private var hasUserChangedPanelWidth = false
 
     @State private var countdownValue: Int?
     @State private var countdownTask: Task<Void, Never>?
@@ -57,7 +59,6 @@ struct CameraTeleprompterView: View {
                         }
                 }
                 .coordinateSpace(name: "cameraTeleprompterStage")
-                .padding(.horizontal, 8)
 
                 bottomBar
             }
@@ -427,6 +428,7 @@ struct CameraTeleprompterView: View {
             coordinateSpace: .named("cameraTeleprompterStage")
         )
             .onChanged { value in
+                hasUserMovedPanel = true
                 let candidate = CGSize(
                     width: panelDragOrigin.width + value.translation.width,
                     height: panelDragOrigin.height + value.translation.height
@@ -447,12 +449,15 @@ struct CameraTeleprompterView: View {
                 let horizontalDelta = layoutDirection == .rightToLeft
                     ? -value.translation.width
                     : value.translation.width
-                let maxWidth = max(220, stageSize.width - 16)
-                let maxHeight = max(160, stageSize.height - 16)
+                let maxWidth = stageSize.width
+                let minWidth = min(220, maxWidth)
+                let maxHeight = max(1, stageSize.height - 16)
+                let minHeight = min(160, maxHeight)
                 panelSize = CGSize(
-                    width: max(220, min(maxWidth, resizeOrigin.width + horizontalDelta)),
-                    height: max(160, min(maxHeight, resizeOrigin.height + value.translation.height))
+                    width: max(minWidth, min(maxWidth, resizeOrigin.width + horizontalDelta)),
+                    height: max(minHeight, min(maxHeight, resizeOrigin.height + value.translation.height))
                 )
+                hasUserChangedPanelWidth = panelSize.width < maxWidth - 0.5
                 panelOffset = clampedOffset(panelOffset, panelSize: panelSize, stageSize: stageSize)
             }
             .onEnded { _ in
@@ -462,25 +467,47 @@ struct CameraTeleprompterView: View {
     }
 
     private func initializePanelIfNeeded(in stageSize: CGSize) {
+        guard stageSize.width > 0, stageSize.height > 0 else { return }
         guard !didInitializePanel else {
             fitPanel(in: stageSize)
             return
         }
         didInitializePanel = true
+        let maxHeight = max(1, stageSize.height - 16)
+        let minHeight = min(160, maxHeight)
         panelSize = CGSize(
-            width: max(220, min(340, stageSize.width - 16)),
-            height: max(160, min(300, stageSize.height * 0.48))
+            width: stageSize.width,
+            height: max(minHeight, min(maxHeight, min(300, stageSize.height * 0.48)))
         )
         resizeOrigin = panelSize
-        panelOffset = .zero
-        panelDragOrigin = .zero
+        panelOffset = CGSize(
+            width: 0,
+            height: -max(0, (stageSize.height - panelSize.height) / 2)
+        )
+        panelDragOrigin = panelOffset
     }
 
     private func fitPanel(in stageSize: CGSize) {
-        panelSize.width = max(220, min(panelSize.width, max(220, stageSize.width - 16)))
-        panelSize.height = max(160, min(panelSize.height, max(160, stageSize.height - 16)))
+        guard stageSize.width > 0, stageSize.height > 0 else { return }
+        let maxWidth = stageSize.width
+        let minWidth = min(220, maxWidth)
+        let maxHeight = max(1, stageSize.height - 16)
+        let minHeight = min(160, maxHeight)
+        if hasUserChangedPanelWidth {
+            panelSize.width = max(minWidth, min(panelSize.width, maxWidth))
+        } else {
+            panelSize.width = maxWidth
+        }
+        panelSize.height = max(minHeight, min(panelSize.height, maxHeight))
         resizeOrigin = panelSize
-        panelOffset = clampedOffset(panelOffset, panelSize: panelSize, stageSize: stageSize)
+        if hasUserMovedPanel {
+            panelOffset = clampedOffset(panelOffset, panelSize: panelSize, stageSize: stageSize)
+        } else {
+            panelOffset = CGSize(
+                width: 0,
+                height: -max(0, (stageSize.height - panelSize.height) / 2)
+            )
+        }
         panelDragOrigin = panelOffset
     }
 
