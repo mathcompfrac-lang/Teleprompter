@@ -9,6 +9,14 @@ import UIKit
 @MainActor
 final class CameraCaptureController: NSObject, ObservableObject {
 
+    struct RecordedClip: Identifiable {
+        let assetIdentifier: String
+        let fileURL: URL
+        let thumbnail: UIImage?
+
+        var id: String { assetIdentifier }
+    }
+
     // MARK: - Published state
 
     @Published private(set) var cameraPermissionStatus = AVCaptureDevice.authorizationStatus(for: .video)
@@ -24,6 +32,8 @@ final class CameraCaptureController: NSObject, ObservableObject {
     @Published private(set) var saveConfirmation: String?
     @Published private(set) var lastSavedAssetIdentifier: String?
     @Published private(set) var hasPendingSave = false
+    @Published private(set) var savedClips: [RecordedClip] = []
+    @Published private(set) var deletingClipIdentifier: String?
 
     /// 供 `CameraPreviewView(session:)` 显示实时画面。
     let session = AVCaptureSession()
@@ -49,6 +59,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     private var permissionTask: Task<Void, Never>?
     private var isStartingRecording = false
     private var pendingSaveURL: URL?
+    private var photoDeletedClipIdentifiers: Set<String> = []
     private var activeVideoDevice: AVCaptureDevice?
     private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
     private var notificationTokens: [NSObjectProtocol] = []
@@ -516,6 +527,19 @@ final class CameraCaptureController: NSObject, ObservableObject {
         removeTemporaryRecording(at: pendingSaveURL)
     }
 
+    func deleteSavedClip(_ clip: RecordedClip) {
+        guard !isSaving,
+              deletingClipIdentifier == nil,
+              savedClips.contains(where: { $0.id == clip.id }) else { return }
+
+        errorMessage = nil
+        saveConfirmation = nil
+        deletingClipIdentifier = clip.id
+        Task { [weak self] in
+            await self?.deleteSavedClipFromPhotoLibrary(clip)
+        }
+    }
+
     private func saveRecordingToPhotoLibrary(at outputURL: URL) async {
         defer {
             isSaving = false
@@ -544,15 +568,124 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 errorMessage = "保存视频失败：系统未创建照片资源"
                 return
             }
+            let thumbnail = await makeThumbnail(for: outputURL)
             lastSavedAssetIdentifier = savedAssetIdentifier
+            savedClips.append(
+                RecordedClip(
+                    assetIdentifier: savedAssetIdentifier,
+                    fileURL: outputURL,
+                    thumbnail: thumbnail
+                )
+            )
             if pendingSaveURL == outputURL {
                 pendingSaveURL = nil
                 hasPendingSave = false
             }
-            removeTemporaryRecording(at: outputURL)
             saveConfirmation = "视频已保存到系统照片"
         } catch {
             errorMessage = "保存视频失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func makeThumbnail(for videoURL: URL) async -> UIImage? {
+        let asset = AVURLAsset(url: videoURL)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 320, height: 320)
+
+        let requestedTimes = [
+            CMTime(seconds: 0.1, preferredTimescale: 600),
+            CMTime.zero,
+        ]
+        for time in requestedTimes {
+            do {
+                let result = try await generator.image(at: time)
+                return UIImage(cgImage: result.image)
+            } catch {
+                continue
+            }
+        }
+        return nil
+    }
+
+    private func deleteSavedClipFromPhotoLibrary(_ clip: RecordedClip) async {
+        defer {
+            deletingClipIdentifier = nil
+        }
+
+        if photoDeletedClipIdentifiers.contains(clip.id) {
+            await finishDeletingSavedClip(clip)
+            return
+        }
+
+        var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        if status == .notDetermined {
+            status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
+        }
+
+        guard status == .authorized || status == .limited else {
+            errorMessage = photoDeletionPermissionMessage(for: status)
+            return
+        }
+
+        let assets = PHAsset.fetchAssets(
+            withLocalIdentifiers: [clip.assetIdentifier],
+            options: nil
+        )
+        guard assets.count > 0 else {
+            if status == .limited {
+                errorMessage = "无法访问该视频，请前往系统设置允许访问全部照片后重试"
+                return
+            }
+            photoDeletedClipIdentifiers.insert(clip.id)
+            await finishDeletingSavedClip(clip)
+            return
+        }
+
+        do {
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.deleteAssets(assets)
+            }
+            photoDeletedClipIdentifiers.insert(clip.id)
+            await finishDeletingSavedClip(clip)
+        } catch {
+            errorMessage = "删除视频失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func finishDeletingSavedClip(_ clip: RecordedClip) async {
+        guard await removeTemporaryRecordingAndReport(at: clip.fileURL) else {
+            errorMessage = "系统相册视频已删除，但本地预览文件清理失败，请重试"
+            return
+        }
+
+        savedClips.removeAll { $0.id == clip.id }
+        if lastSavedAssetIdentifier == clip.assetIdentifier {
+            lastSavedAssetIdentifier = savedClips.last?.assetIdentifier
+        }
+        photoDeletedClipIdentifiers.remove(clip.id)
+        saveConfirmation = "视频已删除"
+    }
+
+    private func removeTemporaryRecordingAndReport(at url: URL) async -> Bool {
+        let temporaryDirectory = temporaryDirectory
+        return await withCheckedContinuation { continuation in
+            sessionQueue.async {
+                do {
+                    if FileManager.default.fileExists(atPath: url.path) {
+                        try FileManager.default.removeItem(at: url)
+                    }
+                    if let items = try? FileManager.default.contentsOfDirectory(
+                        at: temporaryDirectory,
+                        includingPropertiesForKeys: nil
+                    ), items.isEmpty {
+                        try? FileManager.default.removeItem(at: temporaryDirectory)
+                    }
+                    continuation.resume(returning: true)
+                } catch {
+                    continuation.resume(returning: false)
+                }
+            }
         }
     }
 
@@ -759,6 +892,17 @@ final class CameraCaptureController: NSObject, ObservableObject {
             return "当前设备限制了照片访问"
         default:
             return "无法获得照片添加权限"
+        }
+    }
+
+    private func photoDeletionPermissionMessage(for status: PHAuthorizationStatus) -> String {
+        switch status {
+        case .denied:
+            return "没有照片访问权限，请前往系统设置允许访问照片后重试"
+        case .restricted:
+            return "当前设备限制了照片访问，无法删除视频"
+        default:
+            return "无法获得照片访问权限，不能删除视频"
         }
     }
 }

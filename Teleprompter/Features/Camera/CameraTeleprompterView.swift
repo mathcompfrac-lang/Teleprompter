@@ -1,3 +1,4 @@
+import AVKit
 import SwiftUI
 import UIKit
 
@@ -26,6 +27,7 @@ struct CameraTeleprompterView: View {
     @State private var alertMessage: String?
     @State private var alertOffersSettings = false
     @State private var showPendingExitConfirmation = false
+    @State private var selectedClip: CameraCaptureController.RecordedClip?
 
     var body: some View {
         ZStack {
@@ -60,6 +62,10 @@ struct CameraTeleprompterView: View {
                 bottomBar
             }
 
+            if !camera.savedClips.isEmpty {
+                savedClipsShelf
+            }
+
             if let value = countdownValue {
                 countdownOverlay(value: value)
             }
@@ -71,7 +77,11 @@ struct CameraTeleprompterView: View {
         .background(Color.black)
         .statusBarHidden(true)
         .interactiveDismissDisabled(
-            camera.isRecording || camera.isSaving || camera.hasPendingSave || countdownValue != nil
+            camera.isRecording
+                || camera.isSaving
+                || camera.hasPendingSave
+                || camera.deletingClipIdentifier != nil
+                || countdownValue != nil
         )
         .onAppear {
             // 语音识别和录像都会使用麦克风。首版进入拍摄页时停止语音链，
@@ -137,6 +147,11 @@ struct CameraTeleprompterView: View {
         } message: {
             Text("退出后将无法恢复这段临时视频。")
         }
+        .fullScreenCover(item: $selectedClip, onDismiss: {
+            camera.requestPermissionsAndStart()
+        }) { clip in
+            RecordedVideoPreviewView(clip: clip)
+        }
     }
 
     // MARK: - Bars
@@ -156,7 +171,12 @@ struct CameraTeleprompterView: View {
                     .background(.black.opacity(0.55), in: Circle())
             }
             .foregroundStyle(.white)
-            .disabled(camera.isRecording || camera.isSaving || countdownValue != nil)
+            .disabled(
+                camera.isRecording
+                    || camera.isSaving
+                    || camera.deletingClipIdentifier != nil
+                    || countdownValue != nil
+            )
             .accessibilityLabel("关闭提词拍摄")
 
             Spacer()
@@ -222,6 +242,7 @@ struct CameraTeleprompterView: View {
                 (!camera.isRunning && !camera.isRecording)
                     || camera.isSaving
                     || camera.hasPendingSave
+                    || camera.deletingClipIdentifier != nil
                     || countdownValue != nil
             )
             .accessibilityLabel(camera.isRecording ? "停止录像" : "开始录像")
@@ -240,12 +261,103 @@ struct CameraTeleprompterView: View {
     }
 
     private var cameraStatusText: String {
+        if camera.deletingClipIdentifier != nil { return "正在删除" }
         if camera.isSaving { return "正在保存" }
         if camera.hasPendingSave { return "视频待保存" }
         if camera.isRecording { return "录制中" }
         if camera.isRequestingPermissions { return "正在请求权限" }
         if camera.isRunning { return "准备就绪" }
         return "正在准备相机"
+    }
+
+    // MARK: - Saved clips
+
+    private var savedClipsShelf: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            ScrollView(.horizontal) {
+                HStack(spacing: 10) {
+                    ForEach(camera.savedClips) { clip in
+                        savedClipThumbnail(clip)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+            }
+            .scrollIndicators(.hidden)
+            .frame(height: 104)
+            .padding(.bottom, 104)
+        }
+    }
+
+    private func savedClipThumbnail(
+        _ clip: CameraCaptureController.RecordedClip
+    ) -> some View {
+        ZStack(alignment: .topTrailing) {
+            Button {
+                camera.stopSession()
+                selectedClip = clip
+            } label: {
+                ZStack {
+                    if let thumbnail = clip.thumbnail {
+                        Image(uiImage: thumbnail)
+                            .resizable()
+                            .scaledToFill()
+                    } else {
+                        Color.black.opacity(0.72)
+                        Image(systemName: "video.fill")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(9)
+                        .background(.black.opacity(0.55), in: Circle())
+                }
+                .frame(width: 70, height: 88)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(.white.opacity(0.55), lineWidth: 1)
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(savedClipInteractionDisabled)
+            .accessibilityLabel("全屏预览录像")
+
+            if camera.deletingClipIdentifier == clip.id {
+                ProgressView()
+                    .tint(.white)
+                    .frame(width: 28, height: 28)
+                    .background(.black.opacity(0.78), in: Circle())
+                    .padding(4)
+            } else {
+                Button {
+                    camera.deleteSavedClip(clip)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
+                        .background(.black.opacity(0.78), in: Circle())
+                }
+                .buttonStyle(.plain)
+                .padding(4)
+                .disabled(savedClipInteractionDisabled)
+                .accessibilityLabel("删除录像")
+            }
+        }
+    }
+
+    private var savedClipInteractionDisabled: Bool {
+        camera.isRecording
+            || camera.isSaving
+            || camera.deletingClipIdentifier != nil
+            || countdownValue != nil
     }
 
     // MARK: - Teleprompter panel
@@ -449,6 +561,59 @@ struct CameraTeleprompterView: View {
     private func openSystemSettings() {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(url)
+    }
+}
+
+// MARK: - Recorded video preview
+
+private struct RecordedVideoPreviewView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let clip: CameraCaptureController.RecordedClip
+    @State private var player: AVPlayer
+
+    init(clip: CameraCaptureController.RecordedClip) {
+        self.clip = clip
+        _player = State(initialValue: AVPlayer(url: clip.fileURL))
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+
+            VideoPlayer(player: player)
+                .ignoresSafeArea()
+
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.black.opacity(0.62), in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("关闭录像预览")
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
+                Spacer()
+            }
+        }
+        .statusBarHidden(true)
+        .onAppear {
+            player.seek(to: .zero)
+            player.play()
+        }
+        .onDisappear {
+            player.pause()
+        }
     }
 }
 
