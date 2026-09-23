@@ -54,6 +54,7 @@ struct CameraTeleprompterView: View {
                             fitPanel(in: newSize)
                         }
                 }
+                .coordinateSpace(name: "cameraTeleprompterStage")
                 .padding(.horizontal, 8)
 
                 bottomBar
@@ -308,7 +309,10 @@ struct CameraTeleprompterView: View {
     }
 
     private func movePanelGesture(in stageSize: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: 2)
+        DragGesture(
+            minimumDistance: 2,
+            coordinateSpace: .named("cameraTeleprompterStage")
+        )
             .onChanged { value in
                 let candidate = CGSize(
                     width: panelDragOrigin.width + value.translation.width,
@@ -322,7 +326,10 @@ struct CameraTeleprompterView: View {
     }
 
     private func resizePanelGesture(in stageSize: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: 2)
+        DragGesture(
+            minimumDistance: 2,
+            coordinateSpace: .named("cameraTeleprompterStage")
+        )
             .onChanged { value in
                 let horizontalDelta = layoutDirection == .rightToLeft
                     ? -value.translation.width
