@@ -573,18 +573,32 @@ private final class RecordedVideoPlaybackController: ObservableObject {
 
     @Published private(set) var currentTime: Double = 0
     @Published private(set) var duration: Double = 0
+    @Published private(set) var isSeeking = false
+    @Published private(set) var previewFrame: UIImage?
 
+    private let previewImageGenerator: AVAssetImageGenerator
     private var timeObserver: Any?
-    private var isSeeking = false
     private var shouldResumeAfterSeeking = false
     private var isActive = false
     private var seekGeneration = 0
+    private var previewGeneration = 0
+    private var pendingPreviewTime: Double?
+    private var previewFrameTask: Task<Void, Never>?
 
     init(url: URL) {
-        player = AVPlayer(url: url)
+        let asset = AVURLAsset(url: url)
+        player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+        previewImageGenerator = AVAssetImageGenerator(asset: asset)
+        previewImageGenerator.appliesPreferredTrackTransform = true
+        previewImageGenerator.maximumSize = CGSize(width: 480, height: 480)
+        let previewTolerance = CMTime(seconds: 0.1, preferredTimescale: 600)
+        previewImageGenerator.requestedTimeToleranceBefore = previewTolerance
+        previewImageGenerator.requestedTimeToleranceAfter = previewTolerance
     }
 
     deinit {
+        previewFrameTask?.cancel()
+        previewImageGenerator.cancelAllCGImageGeneration()
         if let timeObserver {
             player.removeTimeObserver(timeObserver)
         }
@@ -602,6 +616,7 @@ private final class RecordedVideoPlaybackController: ObservableObject {
         seekGeneration += 1
         player.pause()
         player.currentItem?.cancelPendingSeeks()
+        cancelPreviewFrameGeneration()
         if let timeObserver {
             player.removeTimeObserver(timeObserver)
             self.timeObserver = nil
@@ -618,10 +633,14 @@ private final class RecordedVideoPlaybackController: ObservableObject {
         seekGeneration += 1
         isSeeking = true
         player.pause()
+        requestPreviewFrame(at: currentTime)
     }
 
     func updateSeekPosition(_ seconds: Double) {
         currentTime = max(0, min(duration, seconds))
+        if isSeeking {
+            requestPreviewFrame(at: currentTime)
+        }
     }
 
     func endSeeking() {
@@ -639,11 +658,55 @@ private final class RecordedVideoPlaybackController: ObservableObject {
                       self.seekGeneration == generation else { return }
                 self.isSeeking = false
                 self.shouldResumeAfterSeeking = false
+                self.cancelPreviewFrameGeneration()
                 if self.isActive, shouldResume, finished {
                     self.player.play()
                 }
             }
         }
+    }
+
+    private func requestPreviewFrame(at seconds: Double) {
+        guard isSeeking, duration > 0 else { return }
+        pendingPreviewTime = max(0, min(duration, seconds))
+        guard previewFrameTask == nil else { return }
+
+        let generation = previewGeneration
+        previewFrameTask = Task { @MainActor [weak self] in
+            await self?.generatePendingPreviewFrames(generation: generation)
+        }
+    }
+
+    private func generatePendingPreviewFrames(generation: Int) async {
+        while !Task.isCancelled,
+              generation == previewGeneration,
+              let seconds = pendingPreviewTime {
+            pendingPreviewTime = nil
+            let time = CMTime(seconds: seconds, preferredTimescale: 600)
+            do {
+                let result = try await previewImageGenerator.image(at: time)
+                guard !Task.isCancelled,
+                      generation == previewGeneration else { break }
+                previewFrame = UIImage(cgImage: result.image)
+            } catch {
+                if Task.isCancelled || generation != previewGeneration {
+                    break
+                }
+            }
+        }
+
+        previewFrameTask = nil
+        if isSeeking, let pendingPreviewTime {
+            requestPreviewFrame(at: pendingPreviewTime)
+        }
+    }
+
+    private func cancelPreviewFrameGeneration() {
+        previewGeneration += 1
+        pendingPreviewTime = nil
+        previewFrameTask?.cancel()
+        previewImageGenerator.cancelAllCGImageGeneration()
+        previewFrame = nil
     }
 
     private func installTimeObserverIfNeeded() {
@@ -750,6 +813,44 @@ private struct RecordedVideoPreviewView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(.black.opacity(0.62), in: RoundedRectangle(cornerRadius: 14))
+        .overlay(alignment: .top) {
+            if playback.isSeeking {
+                seekPreviewFrame
+                    .offset(y: -126)
+            }
+        }
+    }
+
+    private var seekPreviewFrame: some View {
+        ZStack {
+            Color.black
+
+            if let previewFrame = playback.previewFrame {
+                Image(uiImage: previewFrame)
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                ProgressView()
+                    .tint(.white)
+            }
+        }
+        .frame(width: 180, height: 108)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(.white.opacity(0.7), lineWidth: 1)
+        }
+        .overlay(alignment: .bottom) {
+            Text(formatPlaybackTime(playback.currentTime))
+                .font(.caption.monospacedDigit().weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.black.opacity(0.68), in: Capsule())
+                .padding(.bottom, 6)
+        }
+        .shadow(color: .black.opacity(0.45), radius: 8, y: 3)
+        .allowsHitTesting(false)
     }
 
     private func formatPlaybackTime(_ seconds: Double) -> String {

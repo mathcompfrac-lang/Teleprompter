@@ -581,7 +581,6 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 pendingSaveURL = nil
                 hasPendingSave = false
             }
-            saveConfirmation = "视频已保存到系统照片"
         } catch {
             errorMessage = "保存视频失败：\(error.localizedDescription)"
         }
