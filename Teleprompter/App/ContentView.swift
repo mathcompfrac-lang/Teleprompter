@@ -26,6 +26,7 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var showAudioPermission = false
     @State private var showNewScript = false
+    @State private var showCameraRecorder = false
     @State private var showPIPUnavailableAlert = false
     @State private var isPIPStarting = false
 
@@ -125,6 +126,18 @@ struct ContentView: View {
                 }
             )
         }
+        .fullScreenCover(isPresented: $showCameraRecorder) {
+            CameraTeleprompterView(
+                viewModel: viewModel,
+                textColor: UIColor(
+                    hexString: settingsList.first?.textColorHex ?? "#FFFFFF"
+                ) ?? .white,
+                highlightColor: UIColor(
+                    hexString: settingsList.first?.highlightColorHex ?? "#FFD700"
+                ) ?? .yellow,
+                overlayOpacity: CGFloat(settingsList.first?.pipOpacity ?? 0.85)
+            )
+        }
         .alert("画中画不可用", isPresented: $showPIPUnavailableAlert) {
             Button("知道了", role: .cancel) {}
         } message: {
@@ -209,6 +222,17 @@ struct ContentView: View {
 
             // 右侧按钮（放大 1.5 倍）
             HStack(spacing: 16) {
+                // App 内提词拍摄
+                Button(action: {
+                    viewModel.stopScrolling()
+                    showCameraRecorder = true
+                }) {
+                    Image(systemName: "video.fill")
+                        .font(.system(size: 23))
+                }
+                .disabled(viewModel.text.isEmpty || pipManager.isPIPActive)
+                .accessibilityLabel("提词拍摄")
+
                 // 新建脚本
                 Button(action: { showNewScript = true }) {
                     Image(systemName: "plus")

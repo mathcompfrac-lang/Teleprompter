@@ -111,6 +111,14 @@
             fileRef = "95BD011DBB3242B7B9EFF420";
             isa = "PBXBuildFile";
         };
+		5FA4E2F3504A4FF684A095E8 = {
+            fileRef = "BCFEA97D28424C2C8AD4ADC4";
+            isa = "PBXBuildFile";
+        };
+		E8DB9F6729E1454B92DFB8E1 = {
+            fileRef = "F726B186649C494A99E6765F";
+            isa = "PBXBuildFile";
+        };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -295,6 +303,18 @@
             path = "Features/PIP/PIPContentViewController.swift";
             sourceTree = "<group>";
         };
+		BCFEA97D28424C2C8AD4ADC4 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Camera/CameraCaptureController.swift";
+            sourceTree = "<group>";
+        };
+		F726B186649C494A99E6765F = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Camera/CameraTeleprompterView.swift";
+            sourceTree = "<group>";
+        };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -340,6 +360,7 @@
                 "96092A6301BD47F692D46D1C",
                 "BDFEF53FF42B438D9CB87B1C",
                 "E83FAC4F0AE14F45AAC4595D",
+                "F2CBC558492940408C596F82",
             );
             isa = "PBXGroup";
             name = "Features";
@@ -419,6 +440,16 @@
             );
             isa = "PBXGroup";
             name = "Audio";
+            path = "";
+            sourceTree = "<group>";
+        };
+		F2CBC558492940408C596F82 = {
+            children = (
+                "BCFEA97D28424C2C8AD4ADC4",
+                "F726B186649C494A99E6765F",
+            );
+            isa = "PBXGroup";
+            name = "Camera";
             path = "";
             sourceTree = "<group>";
         };
@@ -560,8 +591,10 @@
                 "C4530FAFE1D94B96882B9615",
                 "D40399EE75AE44558B8E7D90",
                 "E503AB264563472AB1D2180D",
+                "E8DB9F6729E1454B92DFB8E1",
                 "F5C7FAEFF90A412F8A9DA5B5",
                 "F5CFFCD997124D33BC2B6E0D",
+                "5FA4E2F3504A4FF684A095E8",
             );
             isa = "PBXSourcesBuildPhase";
             runOnlyForDeploymentPostprocessing = 0;
