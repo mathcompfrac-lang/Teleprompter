@@ -1052,6 +1052,7 @@ private struct RecordedVideoPreviewView: View {
     let clipIdentifier: String
     let preventsDismissDuringSubtitleGeneration: Bool
     @StateObject private var playback: RecordedVideoPlaybackController
+    @State private var isSubtitleSavedToastVisible = false
 
     init(
         camera: CameraCaptureController,
@@ -1149,6 +1150,24 @@ private struct RecordedVideoPreviewView: View {
             guard let newURL else { return }
             playback.replaceSource(with: newURL)
         }
+        .onChange(of: clip?.subtitleGenerationState) { oldState, newState in
+            guard oldState != .completed, newState == .completed else { return }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isSubtitleSavedToastVisible = true
+            }
+            UIAccessibility.post(
+                notification: .announcement,
+                argument: String(localized: "硬字幕版已另存到系统照片")
+            )
+        }
+        .task(id: isSubtitleSavedToastVisible) {
+            guard isSubtitleSavedToastVisible else { return }
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isSubtitleSavedToastVisible = false
+            }
+        }
         .onDisappear {
             playback.stop()
         }
@@ -1210,15 +1229,18 @@ private struct RecordedVideoPreviewView: View {
                 )
 
             case .completed:
-                Label("硬字幕版已另存到系统照片", systemImage: "checkmark.circle.fill")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(.black.opacity(0.84), in: RoundedRectangle(cornerRadius: 12))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(.green.opacity(0.9), lineWidth: 1)
-                    }
+                if isSubtitleSavedToastVisible {
+                    Label("硬字幕版已另存到系统照片", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(.black.opacity(0.84), in: RoundedRectangle(cornerRadius: 12))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(.green.opacity(0.9), lineWidth: 1)
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
 
             case .failed(let message):
                 VStack(spacing: 8) {

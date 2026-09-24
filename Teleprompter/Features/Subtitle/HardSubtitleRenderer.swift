@@ -667,13 +667,18 @@ final class HardSubtitleRenderer {
         let animation = CAKeyframeAnimation(keyPath: "opacity")
         if start <= 0 {
             animation.values = [1, 0]
-            animation.keyTimes = [0, NSNumber(value: end)]
+            animation.keyTimes = [0, NSNumber(value: end), 1]
         } else if end >= 1 {
             animation.values = [0, 1]
-            animation.keyTimes = [0, NSNumber(value: start)]
+            animation.keyTimes = [0, NSNumber(value: start), 1]
         } else {
             animation.values = [0, 1, 0]
-            animation.keyTimes = [0, NSNumber(value: start), NSNumber(value: end)]
+            animation.keyTimes = [
+                0,
+                NSNumber(value: start),
+                NSNumber(value: end),
+                1,
+            ]
         }
         animation.calculationMode = .discrete
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
