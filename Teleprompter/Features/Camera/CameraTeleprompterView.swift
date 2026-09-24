@@ -773,6 +773,83 @@ struct CameraTeleprompterView: View {
 
 // MARK: - Recorded video preview
 
+struct ImportedVideoSubtitleView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let sourceURL: URL
+
+    @StateObject private var camera = CameraCaptureController()
+    @State private var importedClip: CameraCaptureController.RecordedClip?
+    @State private var importError: String?
+
+    var body: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+
+            if let importedClip {
+                RecordedVideoPreviewView(
+                    camera: camera,
+                    clip: importedClip,
+                    preventsDismissDuringSubtitleGeneration: true
+                )
+            } else if let importError {
+                VStack(spacing: 18) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 42))
+                        .foregroundStyle(.orange)
+
+                    Text("视频导入失败")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.white)
+
+                    ScrollView(.vertical) {
+                        Text(importError)
+                            .font(.body)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(.white.opacity(0.82))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .frame(maxHeight: 120)
+
+                    Button("取消", role: .cancel) {
+                        dismiss()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(24)
+            } else {
+                ProgressView("正在导入视频…")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .tint(.white)
+            }
+        }
+        .statusBarHidden(true)
+        .interactiveDismissDisabled(
+            (importedClip == nil && importError == nil) || camera.isGeneratingSubtitles
+        )
+        .task {
+            await importVideo()
+        }
+        .onDisappear {
+            camera.cancelSubtitleGeneration()
+            TeleprompterVideoImportStaging.removeFileIfOwned(at: sourceURL)
+        }
+    }
+
+    private func importVideo() async {
+        guard importedClip == nil, importError == nil else { return }
+        do {
+            importedClip = try await camera.importVideoForSubtitles(from: sourceURL)
+        } catch is CancellationError {
+            return
+        } catch {
+            importError = error.localizedDescription
+        }
+    }
+}
+
 @MainActor
 private final class RecordedVideoPlaybackController: ObservableObject {
     let player: AVPlayer
@@ -973,14 +1050,17 @@ private struct RecordedVideoPreviewView: View {
 
     @ObservedObject var camera: CameraCaptureController
     let clipIdentifier: String
+    let preventsDismissDuringSubtitleGeneration: Bool
     @StateObject private var playback: RecordedVideoPlaybackController
 
     init(
         camera: CameraCaptureController,
-        clip: CameraCaptureController.RecordedClip
+        clip: CameraCaptureController.RecordedClip,
+        preventsDismissDuringSubtitleGeneration: Bool = false
     ) {
         self.camera = camera
         clipIdentifier = clip.id
+        self.preventsDismissDuringSubtitleGeneration = preventsDismissDuringSubtitleGeneration
         _playback = StateObject(
             wrappedValue: RecordedVideoPlaybackController(url: clip.previewURL)
         )
@@ -1036,6 +1116,10 @@ private struct RecordedVideoPreviewView: View {
                             .background(.black.opacity(0.62), in: Circle())
                     }
                     .buttonStyle(.plain)
+                    .disabled(
+                        preventsDismissDuringSubtitleGeneration
+                            && camera.isGeneratingSubtitles
+                    )
                     .accessibilityLabel("关闭录像预览")
                 }
                 .padding(.horizontal, 16)
@@ -1052,6 +1136,9 @@ private struct RecordedVideoPreviewView: View {
             }
         }
         .statusBarHidden(true)
+        .interactiveDismissDisabled(
+            preventsDismissDuringSubtitleGeneration && camera.isGeneratingSubtitles
+        )
         .onAppear {
             if let previewURL = clip?.previewURL {
                 playback.replaceSource(with: previewURL)
@@ -1076,7 +1163,7 @@ private struct RecordedVideoPreviewView: View {
                     Button {
                         camera.generateSubtitledVideo(for: clip)
                     } label: {
-                        Label("生成硬字幕版", systemImage: "captions.bubble")
+                        Label("识别字幕", systemImage: "captions.bubble")
                             .font(.headline)
                             .frame(maxWidth: .infinity, minHeight: 46)
                     }

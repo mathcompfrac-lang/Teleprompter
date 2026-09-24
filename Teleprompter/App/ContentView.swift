@@ -1,7 +1,11 @@
 import SwiftUI
 import SwiftData
 import Combine
+import CoreTransferable
 import Network
+import Photos
+import PhotosUI
+import UniformTypeIdentifiers
 
 /// 主内容视图
 /// 集成了脚本选择 + 提词控制 + 画中画管理
@@ -27,6 +31,10 @@ struct ContentView: View {
     @State private var showAudioPermission = false
     @State private var showNewScript = false
     @State private var showCameraRecorder = false
+    @State private var selectedSubtitleVideoItem: PhotosPickerItem?
+    @State private var selectedSubtitleVideo: SelectedSubtitleVideo?
+    @State private var isImportingSubtitleVideo = false
+    @State private var subtitleVideoImportError: String?
     @State private var showPIPUnavailableAlert = false
     @State private var isPIPStarting = false
 
@@ -72,6 +80,19 @@ struct ContentView: View {
             } else {
                 // 主界面
                 mainContent
+            }
+
+            if isImportingSubtitleVideo {
+                Color.black.opacity(0.55)
+                    .ignoresSafeArea()
+
+                ProgressView("正在导入视频…")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .tint(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 18)
+                    .background(.black.opacity(0.82), in: RoundedRectangle(cornerRadius: 14))
             }
 
             // 倒计时显示
@@ -138,10 +159,28 @@ struct ContentView: View {
                 overlayOpacity: CGFloat(settingsList.first?.pipOpacity ?? 0.85)
             )
         }
+        .fullScreenCover(item: $selectedSubtitleVideo) { video in
+            ImportedVideoSubtitleView(sourceURL: video.fileURL)
+        }
+        .onChange(of: selectedSubtitleVideoItem) { _, item in
+            guard let item else { return }
+            importSubtitleVideo(from: item)
+        }
         .alert("画中画不可用", isPresented: $showPIPUnavailableAlert) {
             Button("知道了", role: .cancel) {}
         } message: {
             Text("当前设备（模拟器）不支持画中画功能。\n请在真机上运行以使用画中画悬浮提词。")
+        }
+        .alert(
+            "视频导入失败",
+            isPresented: Binding(
+                get: { subtitleVideoImportError != nil },
+                set: { if !$0 { subtitleVideoImportError = nil } }
+            )
+        ) {
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text(subtitleVideoImportError ?? "")
         }
         .onChange(of: pipManager.isPIPActive) { _, isActive in
             if !isActive {
@@ -180,6 +219,8 @@ struct ContentView: View {
             // 顶部：脚本选择 + 操作栏
             topBar
 
+            subtitleRecognitionEntry
+
             // 中间：提词器主区域
             if !viewModel.text.isEmpty {
                 teleprompterArea(vm: viewModel)
@@ -198,6 +239,56 @@ struct ContentView: View {
                 .padding(.bottom, 8)
             }
         }
+    }
+
+    private var subtitleRecognitionEntry: some View {
+        PhotosPicker(
+            selection: $selectedSubtitleVideoItem,
+            matching: .videos,
+            preferredItemEncoding: .current,
+            photoLibrary: .shared()
+        ) {
+            HStack(spacing: 12) {
+                Image(systemName: "captions.bubble.fill")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 10))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("识别字幕")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text("从系统相册选择视频")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "chevron.forward")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .background(
+                Color.accentColor.opacity(0.12),
+                in: RoundedRectangle(cornerRadius: 12)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.accentColor.opacity(0.35), lineWidth: 1)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .disabled(pipManager.isPIPActive || isImportingSubtitleVideo)
+        .accessibilityLabel("识别字幕")
+        .accessibilityHint("从系统相册选择视频")
+        .padding(.horizontal)
+        .padding(.bottom, 8)
     }
 
     // MARK: - 顶部栏
@@ -431,6 +522,32 @@ struct ContentView: View {
         showScriptList = false
     }
 
+    private func importSubtitleVideo(from item: PhotosPickerItem) {
+        guard !isImportingSubtitleVideo else { return }
+        isImportingSubtitleVideo = true
+        subtitleVideoImportError = nil
+
+        Task { @MainActor in
+            defer {
+                isImportingSubtitleVideo = false
+                selectedSubtitleVideoItem = nil
+            }
+
+            do {
+                guard let video = try await item.loadTransferable(
+                    type: SelectedSubtitleVideo.self
+                ) else {
+                    throw SubtitleVideoImportFailure()
+                }
+                selectedSubtitleVideo = video
+            } catch is CancellationError {
+                return
+            } catch {
+                subtitleVideoImportError = error.localizedDescription
+            }
+        }
+    }
+
     private func loadSettingsIntoViewModel() {
         let descriptor = FetchDescriptor<SettingsModel>()
         if let s = try? modelContext.fetch(descriptor).first {
@@ -557,6 +674,42 @@ struct ContentView: View {
     /// 让主视图的文本预览跟随进度条滚动
     private func scrollPreviewTo(proxy: ScrollViewProxy, progress: CGFloat, vm: TeleprompterViewModel) {
         // 不再使用，已替换为 TeleprompterPreviewView
+    }
+}
+
+private struct SelectedSubtitleVideo: Identifiable, Transferable {
+    let id = UUID()
+    let fileURL: URL
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(importedContentType: .movie) { receivedFile in
+            let stagingDirectory = TeleprompterVideoImportStaging.directoryURL
+            TeleprompterVideoImportStaging.removeExpiredFiles()
+            try FileManager.default.createDirectory(
+                at: stagingDirectory,
+                withIntermediateDirectories: true
+            )
+
+            let pathExtension = receivedFile.file.pathExtension.isEmpty
+                ? "mov"
+                : receivedFile.file.pathExtension
+            let destinationURL = stagingDirectory
+                .appendingPathComponent(UUID().uuidString)
+                .appendingPathExtension(pathExtension)
+            do {
+                try FileManager.default.copyItem(at: receivedFile.file, to: destinationURL)
+                return SelectedSubtitleVideo(fileURL: destinationURL)
+            } catch {
+                TeleprompterVideoImportStaging.removeFileIfOwned(at: destinationURL)
+                throw error
+            }
+        }
+    }
+}
+
+private struct SubtitleVideoImportFailure: LocalizedError {
+    var errorDescription: String? {
+        String(localized: "无法读取选择的视频")
     }
 }
 

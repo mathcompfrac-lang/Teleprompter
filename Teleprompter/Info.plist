@@ -29,9 +29,9 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>悬浮提词器需要麦克风权限来录制视频声音，并检测您的语速实现语音同步滚屏。</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>悬浮提词器需要照片添加权限来将拍摄的视频保存到系统相册。</string>
+	<string>悬浮提词器需要照片添加权限来保存拍摄视频和生成的字幕版视频。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>悬浮提词器需要照片访问权限来删除您在提词拍摄中保存的视频。</string>
+	<string>悬浮提词器需要照片访问权限来选择需要识别字幕的视频，以及管理您在提词拍摄中保存的视频。</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>悬浮提词器使用设备端语音识别来追踪朗读位置，并为您录制的视频生成同步字幕。</string>
 	<key>UIApplicationSupportsMultipleScenes</key>

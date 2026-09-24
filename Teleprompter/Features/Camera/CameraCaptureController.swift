@@ -4,6 +4,43 @@ import Photos
 import SwiftUI
 import UIKit
 
+enum TeleprompterVideoImportStaging {
+    static var directoryURL: URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("TeleprompterImports", isDirectory: true)
+    }
+
+    static func contains(_ url: URL) -> Bool {
+        let directoryComponents = directoryURL.standardizedFileURL.pathComponents
+        let fileComponents = url.standardizedFileURL.pathComponents
+        return fileComponents.count > directoryComponents.count
+            && fileComponents.prefix(directoryComponents.count).elementsEqual(directoryComponents)
+    }
+
+    static func removeFileIfOwned(at url: URL) {
+        guard contains(url), FileManager.default.fileExists(atPath: url.path) else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    static func removeExpiredFiles() {
+        let keys: Set<URLResourceKey> = [.contentModificationDateKey, .isRegularFileKey]
+        guard let files = try? FileManager.default.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: Array(keys),
+            options: [.skipsHiddenFiles]
+        ) else { return }
+
+        let expirationDate = Date().addingTimeInterval(-24 * 60 * 60)
+        for file in files {
+            let values = try? file.resourceValues(forKeys: keys)
+            guard values?.isRegularFile == true,
+                  let modifiedAt = values?.contentModificationDate,
+                  modifiedAt < expirationDate else { continue }
+            removeFileIfOwned(at: file)
+        }
+    }
+}
+
 /// App 内相机采集控制器。`AVCaptureMovieFileOutput` 只接收相机和麦克风输入，
 /// 因此叠加在预览上方的提词 UI 不会被录入成片。
 @MainActor
@@ -44,15 +81,24 @@ final class CameraCaptureController: NSObject, ObservableObject {
     }
 
     struct RecordedClip: Identifiable {
-        let assetIdentifier: String
+        enum Source {
+            case cameraCapture(photoAssetIdentifier: String)
+            case importedPhotoLibrary
+
+            var ownedPhotoAssetIdentifier: String? {
+                guard case .cameraCapture(let identifier) = self else { return nil }
+                return identifier
+            }
+        }
+
+        let id: String
+        let source: Source
         let fileURL: URL
         let thumbnail: UIImage?
         var subtitleCues: [SubtitleCue] = []
         var subtitleGenerationState: SubtitleGenerationState = .notStarted
         var subtitledAssetIdentifier: String?
         var subtitledFileURL: URL?
-
-        var id: String { assetIdentifier }
 
         var previewURL: URL {
             subtitledFileURL ?? fileURL
@@ -576,6 +622,54 @@ final class CameraCaptureController: NSObject, ObservableObject {
         removeTemporaryRecording(at: pendingSaveURL)
     }
 
+    func importVideoForSubtitles(from sourceURL: URL) async throws -> RecordedClip {
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+            throw CameraCaptureFailure(String(localized: "无法读取选择的视频"))
+        }
+
+        try Task.checkCancellation()
+        try FileManager.default.createDirectory(
+            at: temporaryDirectory,
+            withIntermediateDirectories: true
+        )
+
+        let pathExtension = sourceURL.pathExtension.isEmpty ? "mov" : sourceURL.pathExtension
+        let localURL = temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(pathExtension)
+
+        do {
+            if TeleprompterVideoImportStaging.contains(sourceURL) {
+                do {
+                    try FileManager.default.moveItem(at: sourceURL, to: localURL)
+                } catch {
+                    try FileManager.default.copyItem(at: sourceURL, to: localURL)
+                    TeleprompterVideoImportStaging.removeFileIfOwned(at: sourceURL)
+                }
+            } else {
+                try FileManager.default.copyItem(at: sourceURL, to: localURL)
+            }
+
+            let asset = AVURLAsset(url: localURL)
+            guard !(try await asset.loadTracks(withMediaType: .video)).isEmpty else {
+                throw CameraCaptureFailure(String(localized: "无法读取选择的视频"))
+            }
+
+            try Task.checkCancellation()
+            let clip = RecordedClip(
+                id: UUID().uuidString,
+                source: .importedPhotoLibrary,
+                fileURL: localURL,
+                thumbnail: await makeThumbnail(for: localURL)
+            )
+            savedClips.append(clip)
+            return clip
+        } catch {
+            try? FileManager.default.removeItem(at: localURL)
+            throw error
+        }
+    }
+
     func generateSubtitledVideo(for clip: RecordedClip) {
         guard !isSaving,
               deletingClipIdentifier == nil else {
@@ -798,7 +892,8 @@ final class CameraCaptureController: NSObject, ObservableObject {
             lastSavedAssetIdentifier = savedAssetIdentifier
             savedClips.append(
                 RecordedClip(
-                    assetIdentifier: savedAssetIdentifier,
+                    id: savedAssetIdentifier,
+                    source: .cameraCapture(photoAssetIdentifier: savedAssetIdentifier),
                     fileURL: outputURL,
                     thumbnail: thumbnail
                 )
@@ -843,6 +938,15 @@ final class CameraCaptureController: NSObject, ObservableObject {
             return
         }
 
+        let assetIdentifiers = [
+            clip.source.ownedPhotoAssetIdentifier,
+            clip.subtitledAssetIdentifier,
+        ].compactMap { $0 }
+        guard !assetIdentifiers.isEmpty else {
+            await finishDeletingSavedClip(clip)
+            return
+        }
+
         var status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         if status == .notDetermined {
             status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
@@ -853,8 +957,6 @@ final class CameraCaptureController: NSObject, ObservableObject {
             return
         }
 
-        let assetIdentifiers = [clip.assetIdentifier, clip.subtitledAssetIdentifier]
-            .compactMap { $0 }
         let assets = PHAsset.fetchAssets(
             withLocalIdentifiers: assetIdentifiers,
             options: nil
@@ -896,14 +998,17 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
 
         savedClips.removeAll { $0.id == clip.id }
-        if lastSavedAssetIdentifier == clip.assetIdentifier {
-            lastSavedAssetIdentifier = savedClips.last?.assetIdentifier
+        if lastSavedAssetIdentifier == clip.source.ownedPhotoAssetIdentifier {
+            lastSavedAssetIdentifier = savedClips.reversed().compactMap {
+                $0.source.ownedPhotoAssetIdentifier
+            }.first
         }
         photoDeletedClipIdentifiers.remove(clip.id)
         saveConfirmation = "视频已删除"
     }
 
     private func removeTemporaryRecordingAndReport(at url: URL) async -> Bool {
+        guard isManagedTemporaryFile(url) else { return false }
         let temporaryDirectory = temporaryDirectory
         return await withCheckedContinuation { continuation in
             sessionQueue.async {
@@ -926,6 +1031,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     }
 
     private func removeTemporaryRecording(at url: URL) {
+        guard isManagedTemporaryFile(url) else { return }
         let temporaryDirectory = temporaryDirectory
         sessionQueue.async {
             try? FileManager.default.removeItem(at: url)
@@ -936,6 +1042,13 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 try? FileManager.default.removeItem(at: temporaryDirectory)
             }
         }
+    }
+
+    private func isManagedTemporaryFile(_ url: URL) -> Bool {
+        let directoryComponents = temporaryDirectory.standardizedFileURL.pathComponents
+        let fileComponents = url.standardizedFileURL.pathComponents
+        return fileComponents.count > directoryComponents.count
+            && fileComponents.prefix(directoryComponents.count).elementsEqual(directoryComponents)
     }
 
     private func removeExpiredTemporaryRecordings() {
