@@ -2,6 +2,16 @@ import AVKit
 import SwiftUI
 import UIKit
 
+private func subtitleTranscriptionStatusText(for progress: Double) -> LocalizedStringKey {
+    if progress < 0.15 {
+        return "正在准备本地语音模型…"
+    }
+    if progress < 0.2 {
+        return "正在提取视频音轨…"
+    }
+    return "正在本地识别字幕…"
+}
+
 /// App 内提词拍摄页面。相机只录制采集流，提词窗仅叠加在预览层上方。
 struct CameraTeleprompterView: View {
 
@@ -729,7 +739,7 @@ struct CameraTeleprompterView: View {
         case .notStarted:
             return "等待生成字幕"
         case .transcribing(let progress):
-            return transcriptionStatusText(for: progress)
+            return subtitleTranscriptionStatusText(for: progress)
         case .rendering:
             return "正在写入硬字幕…"
         case .saving:
@@ -739,16 +749,6 @@ struct CameraTeleprompterView: View {
         case .failed:
             return "字幕生成失败"
         }
-    }
-
-    private func transcriptionStatusText(for progress: Double) -> LocalizedStringKey {
-        if progress < 0.15 {
-            return "正在准备本地语音模型…"
-        }
-        if progress < 0.2 {
-            return "正在提取视频音轨…"
-        }
-        return "正在本地识别字幕…"
     }
 
     // MARK: - Alerts
@@ -1100,7 +1100,7 @@ private struct RecordedVideoPreviewView: View {
 
             case .transcribing(let progress):
                 subtitleProgressPanel(
-                    title: transcriptionStatusText(for: progress),
+                    title: subtitleTranscriptionStatusText(for: progress),
                     progress: clip.subtitleGenerationState.overallProgress,
                     allowsCancellation: true,
                     clip: clip
