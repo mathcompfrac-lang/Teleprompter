@@ -230,7 +230,7 @@ final class HardSubtitleRenderer {
 
         let composition = AVMutableComposition()
         let sourceTimeRange = CMTimeRange(start: .zero, duration: duration)
-        try composition.insertTimeRange(sourceTimeRange, of: asset, at: .zero)
+        try await composition.insertTimeRange(sourceTimeRange, of: asset, at: .zero)
         try checkCancellation()
 
         guard let compositionVideoTrack = composition.tracks(withMediaType: .video).first else {
