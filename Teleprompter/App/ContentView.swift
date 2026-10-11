@@ -1,7 +1,6 @@
 import SwiftUI
 import SwiftData
 import Combine
-import CoreTransferable
 import Network
 import Photos
 import PhotosUI
@@ -22,6 +21,7 @@ struct ContentView: View {
     // MARK: - 状态对象
 
     @StateObject private var pipManager = PIPManager.shared
+    @StateObject private var subtitleVideoImporter = SubtitleVideoImporter()
 
     // MARK: - 本地状态
 
@@ -31,7 +31,8 @@ struct ContentView: View {
     @State private var showAudioPermission = false
     @State private var showNewScript = false
     @State private var showCameraRecorder = false
-    @State private var selectedSubtitleVideoItem: PhotosPickerItem?
+    @State private var showSubtitleVideoPicker = false
+    @State private var pendingSubtitleVideoSelection: SubtitleVideoSelection?
     @State private var selectedSubtitleVideo: SelectedSubtitleVideo?
     @State private var isImportingSubtitleVideo = false
     @State private var subtitleVideoImportError: String?
@@ -147,6 +148,17 @@ struct ContentView: View {
                 }
             )
         }
+        .sheet(
+            isPresented: $showSubtitleVideoPicker,
+            onDismiss: importPendingSubtitleVideo
+        ) {
+            SystemVideoPicker { selection in
+                pendingSubtitleVideoSelection = selection
+                showSubtitleVideoPicker = false
+            } onCancel: {
+                showSubtitleVideoPicker = false
+            }
+        }
         .fullScreenCover(isPresented: $showCameraRecorder) {
             CameraTeleprompterView(
                 viewModel: viewModel,
@@ -161,10 +173,6 @@ struct ContentView: View {
         }
         .fullScreenCover(item: $selectedSubtitleVideo) { video in
             ImportedVideoSubtitleView(sourceURL: video.fileURL)
-        }
-        .onChange(of: selectedSubtitleVideoItem) { _, item in
-            guard let item else { return }
-            importSubtitleVideo(from: item)
         }
         .alert("画中画不可用", isPresented: $showPIPUnavailableAlert) {
             Button("知道了", role: .cancel) {}
@@ -242,12 +250,11 @@ struct ContentView: View {
     }
 
     private var subtitleRecognitionEntry: some View {
-        PhotosPicker(
-            selection: $selectedSubtitleVideoItem,
-            matching: .videos,
-            preferredItemEncoding: .compatible,
-            photoLibrary: .shared()
-        ) {
+        Button {
+            subtitleVideoImportError = nil
+            pendingSubtitleVideoSelection = nil
+            showSubtitleVideoPicker = true
+        } label: {
             HStack(spacing: 12) {
                 Image(systemName: "captions.bubble.fill")
                     .font(.system(size: 20, weight: .semibold))
@@ -522,27 +529,20 @@ struct ContentView: View {
         showScriptList = false
     }
 
-    private func importSubtitleVideo(from item: PhotosPickerItem) {
-        guard !isImportingSubtitleVideo else { return }
+    private func importPendingSubtitleVideo() {
+        guard !isImportingSubtitleVideo,
+              let selection = pendingSubtitleVideoSelection else { return }
+
+        pendingSubtitleVideoSelection = nil
         isImportingSubtitleVideo = true
         subtitleVideoImportError = nil
 
-        Task { @MainActor in
-            defer {
-                isImportingSubtitleVideo = false
-                selectedSubtitleVideoItem = nil
-            }
-
-            do {
-                guard let video = try await item.loadTransferable(
-                    type: SelectedSubtitleVideo.self
-                ) else {
-                    throw SubtitleVideoImportFailure()
-                }
+        subtitleVideoImporter.importVideo(from: selection) { result in
+            isImportingSubtitleVideo = false
+            switch result {
+            case let .success(video):
                 selectedSubtitleVideo = video
-            } catch is CancellationError {
-                return
-            } catch {
+            case let .failure(error):
                 subtitleVideoImportError = error.localizedDescription
             }
         }
@@ -677,39 +677,343 @@ struct ContentView: View {
     }
 }
 
-private struct SelectedSubtitleVideo: Identifiable, Transferable {
-    let id = UUID()
-    let fileURL: URL
+private struct SubtitleVideoSelection {
+    let itemProvider: NSItemProvider
+}
 
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(importedContentType: .movie) { receivedFile in
-            let stagingDirectory = TeleprompterVideoImportStaging.directoryURL
-            TeleprompterVideoImportStaging.removeExpiredFiles()
-            try FileManager.default.createDirectory(
-                at: stagingDirectory,
-                withIntermediateDirectories: true
-            )
+private struct SystemVideoPicker: UIViewControllerRepresentable {
+    let onSelection: (SubtitleVideoSelection) -> Void
+    let onCancel: () -> Void
 
-            let pathExtension = receivedFile.file.pathExtension.isEmpty
-                ? "mov"
-                : receivedFile.file.pathExtension
-            let destinationURL = stagingDirectory
-                .appendingPathComponent(UUID().uuidString)
-                .appendingPathExtension(pathExtension)
-            do {
-                try FileManager.default.copyItem(at: receivedFile.file, to: destinationURL)
-                return SelectedSubtitleVideo(fileURL: destinationURL)
-            } catch {
-                TeleprompterVideoImportStaging.removeFileIfOwned(at: destinationURL)
-                throw error
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var configuration = PHPickerConfiguration(photoLibrary: .shared())
+        configuration.filter = .videos
+        configuration.selectionLimit = 1
+        configuration.preferredAssetRepresentationMode = .compatible
+
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    final class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        private let parent: SystemVideoPicker
+
+        init(parent: SystemVideoPicker) {
+            self.parent = parent
+        }
+
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            guard let result = results.first else {
+                parent.onCancel()
+                return
             }
+
+            parent.onSelection(
+                SubtitleVideoSelection(
+                    itemProvider: result.itemProvider
+                )
+            )
         }
     }
 }
 
-private struct SubtitleVideoImportFailure: LocalizedError {
+@MainActor
+private final class SubtitleVideoImporter: ObservableObject {
+    private var activeProvider: NSItemProvider?
+    private var activeProgress: Progress?
+    private var completion: ((Result<SelectedSubtitleVideo, SubtitleVideoImportFailure>) -> Void)?
+
+    func importVideo(
+        from selection: SubtitleVideoSelection,
+        completion: @escaping (Result<SelectedSubtitleVideo, SubtitleVideoImportFailure>) -> Void
+    ) {
+        guard activeProgress == nil else {
+            completion(.failure(.alreadyInProgress))
+            return
+        }
+
+        let provider = selection.itemProvider
+        var seenTypeIdentifiers = Set<String>()
+        var contentTypes = provider.registeredContentTypes(conformingTo: .movie)
+        if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
+            contentTypes.append(.movie)
+        }
+        contentTypes = contentTypes.filter {
+            seenTypeIdentifiers.insert($0.identifier).inserted
+        }
+        guard !contentTypes.isEmpty else {
+            completion(.failure(.unsupportedRepresentation(provider.registeredTypeIdentifiers)))
+            return
+        }
+
+        activeProvider = provider
+        self.completion = completion
+        loadRepresentation(contentTypes: contentTypes, index: 0)
+    }
+
+    private func loadRepresentation(
+        contentTypes: [UTType],
+        index: Int
+    ) {
+        guard let provider = activeProvider else { return }
+        let contentType = contentTypes[index]
+        activeProgress = provider.loadFileRepresentation(
+            for: contentType,
+            openInPlace: false
+        ) { [weak self] temporaryURL, _, error in
+            let result: Result<SelectedSubtitleVideo, SubtitleVideoImportFailure>
+            if let error {
+                result = .failure(.provider(SubtitleVideoErrorCode.chain(from: error)))
+            } else if let temporaryURL {
+                do {
+                    result = .success(
+                        try SelectedSubtitleVideo.importFile(
+                            at: temporaryURL,
+                            contentType: contentType
+                        )
+                    )
+                } catch let importError as SubtitleVideoImportFailure {
+                    result = .failure(importError)
+                } catch {
+                    result = .failure(.copy(SubtitleVideoErrorCode.chain(from: error)))
+                }
+            } else {
+                result = .failure(.missingTemporaryFile)
+            }
+
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if case let .failure(error) = result,
+                   error.canTryAnotherRepresentation,
+                   contentTypes.indices.contains(index + 1) {
+                    self.loadRepresentation(
+                        contentTypes: contentTypes,
+                        index: index + 1
+                    )
+                } else {
+                    self.finish(with: result)
+                }
+            }
+        }
+    }
+
+    private func finish(
+        with result: Result<SelectedSubtitleVideo, SubtitleVideoImportFailure>
+    ) {
+        let completion = completion
+        self.completion = nil
+        activeProgress = nil
+        activeProvider = nil
+        completion?(result)
+    }
+
+}
+
+private struct SelectedSubtitleVideo: Identifiable, Sendable {
+    let id = UUID()
+    let fileURL: URL
+
+    static func importFile(at sourceURL: URL, contentType: UTType) throws -> Self {
+        let resolvedSourceURL = try resolveVideoFile(
+            at: sourceURL
+        )
+        let sourceValues: URLResourceValues
+        do {
+            sourceValues = try resolvedSourceURL.resourceValues(
+                forKeys: [.isRegularFileKey, .fileSizeKey, .contentTypeKey]
+            )
+        } catch {
+            throw SubtitleVideoImportFailure.invalidTemporaryFile
+        }
+        guard sourceValues.isRegularFile == true,
+              let sourceSize = sourceValues.fileSize,
+              sourceSize > 0 else {
+            throw SubtitleVideoImportFailure.invalidTemporaryFile
+        }
+
+        let stagingDirectory = TeleprompterVideoImportStaging.directoryURL
+        TeleprompterVideoImportStaging.removeExpiredFiles()
+        try FileManager.default.createDirectory(
+            at: stagingDirectory,
+            withIntermediateDirectories: true
+        )
+
+        let resourceTypeExtension = sourceValues.contentType?.conforms(to: .movie) == true
+            ? sourceValues.contentType?.preferredFilenameExtension
+            : nil
+        let existingExtensionType = resolvedSourceURL.pathExtension.isEmpty
+            ? nil
+            : UTType(filenameExtension: resolvedSourceURL.pathExtension)
+        let existingMovieExtension = existingExtensionType?.conforms(to: .movie) == true
+            ? resolvedSourceURL.pathExtension
+            : nil
+        let pathExtension = resourceTypeExtension
+            ?? existingMovieExtension
+            ?? contentType.preferredFilenameExtension
+            ?? "mov"
+        let destinationURL = stagingDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension(pathExtension)
+        do {
+            try FileManager.default.copyItem(at: resolvedSourceURL, to: destinationURL)
+            let destinationValues = try destinationURL.resourceValues(
+                forKeys: [.isRegularFileKey, .fileSizeKey]
+            )
+            guard destinationValues.isRegularFile == true,
+                  destinationValues.fileSize == sourceSize else {
+                throw SubtitleVideoImportFailure.invalidCopiedFile
+            }
+            try? FileManager.default.setAttributes(
+                [.modificationDate: Date()],
+                ofItemAtPath: destinationURL.path
+            )
+            return SelectedSubtitleVideo(fileURL: destinationURL)
+        } catch {
+            TeleprompterVideoImportStaging.removeFileIfOwned(at: destinationURL)
+            throw error
+        }
+    }
+
+    private static func resolveVideoFile(at sourceURL: URL) throws -> URL {
+        let rootValues: URLResourceValues
+        do {
+            rootValues = try sourceURL.resourceValues(
+                forKeys: [.isRegularFileKey, .isDirectoryKey, .isSymbolicLinkKey]
+            )
+        } catch {
+            throw SubtitleVideoImportFailure.invalidTemporaryFile
+        }
+        guard rootValues.isSymbolicLink != true else {
+            throw SubtitleVideoImportFailure.invalidTemporaryFile
+        }
+        if rootValues.isRegularFile == true {
+            return sourceURL
+        }
+        guard rootValues.isDirectory == true else {
+            throw SubtitleVideoImportFailure.invalidTemporaryFile
+        }
+
+        let keys: Set<URLResourceKey> = [
+            .isRegularFileKey,
+            .isSymbolicLinkKey,
+            .fileSizeKey,
+            .contentTypeKey
+        ]
+        guard let enumerator = FileManager.default.enumerator(
+            at: sourceURL,
+            includingPropertiesForKeys: Array(keys),
+            options: [.skipsHiddenFiles],
+            errorHandler: nil
+        ) else {
+            throw SubtitleVideoImportFailure.invalidTemporaryFile
+        }
+
+        var movieFiles: [(url: URL, size: Int)] = []
+        var regularFiles: [(url: URL, size: Int)] = []
+        var examinedItemCount = 0
+        for case let candidateURL as URL in enumerator {
+            examinedItemCount += 1
+            guard examinedItemCount <= 512 else {
+                throw SubtitleVideoImportFailure.invalidTemporaryFile
+            }
+            guard let values = try? candidateURL.resourceValues(forKeys: keys),
+                  values.isRegularFile == true,
+                  values.isSymbolicLink != true,
+                  let fileSize = values.fileSize,
+                  fileSize > 0 else { continue }
+
+            let candidate = (url: candidateURL, size: fileSize)
+            regularFiles.append(candidate)
+            let detectedType = values.contentType
+                ?? UTType(filenameExtension: candidateURL.pathExtension)
+            if detectedType?.conforms(to: .movie) == true {
+                movieFiles.append(candidate)
+            }
+        }
+
+        if let resolvedMovie = movieFiles.max(by: { $0.size < $1.size }) {
+            return resolvedMovie.url
+        }
+        guard regularFiles.count == 1, let onlyFile = regularFiles.first else {
+            throw SubtitleVideoImportFailure.invalidTemporaryFile
+        }
+        return onlyFile.url
+    }
+}
+
+private struct SubtitleVideoErrorCode: Sendable {
+    let domain: String
+    let code: Int
+
+    static func chain(from error: Error) -> [Self] {
+        var codes: [Self] = []
+        var currentError: NSError? = error as NSError
+        for _ in 0..<4 {
+            guard let currentError else { break }
+            codes.append(
+                SubtitleVideoErrorCode(
+                    domain: String(currentError.domain.prefix(80)),
+                    code: currentError.code
+                )
+            )
+            currentError = currentError.userInfo[NSUnderlyingErrorKey] as? NSError
+        }
+        return codes
+    }
+}
+
+private enum SubtitleVideoImportFailure: LocalizedError, Sendable {
+    case alreadyInProgress
+    case unsupportedRepresentation([String])
+    case provider([SubtitleVideoErrorCode])
+    case missingTemporaryFile
+    case invalidTemporaryFile
+    case invalidCopiedFile
+    case copy([SubtitleVideoErrorCode])
+
+    var canTryAnotherRepresentation: Bool {
+        switch self {
+        case .provider, .missingTemporaryFile, .invalidTemporaryFile:
+            return true
+        case .alreadyInProgress, .unsupportedRepresentation, .invalidCopiedFile, .copy:
+            return false
+        }
+    }
+
     var errorDescription: String? {
-        String(localized: "无法读取选择的视频")
+        let base = String(localized: "无法读取选择的视频")
+        switch self {
+        case .alreadyInProgress:
+            return "\(base) [P00]"
+        case let .unsupportedRepresentation(typeIdentifiers):
+            let registeredTypes = typeIdentifiers.prefix(3).joined(separator: ",")
+            return registeredTypes.isEmpty
+                ? "\(base) [P01]"
+                : "\(base) [P01 \(registeredTypes)]"
+        case let .provider(errorCodes):
+            return "\(base) [P02 \(Self.diagnosticCode(for: errorCodes))]"
+        case .missingTemporaryFile:
+            return "\(base) [P03]"
+        case .invalidTemporaryFile:
+            return "\(base) [P04]"
+        case .invalidCopiedFile:
+            return "\(base) [P05]"
+        case let .copy(errorCodes):
+            return "\(base) [P06 \(Self.diagnosticCode(for: errorCodes))]"
+        }
+    }
+
+    private static func diagnosticCode(for errorCodes: [SubtitleVideoErrorCode]) -> String {
+        errorCodes
+            .map { "\($0.domain):\($0.code)" }
+            .joined(separator: ">")
     }
 }
 

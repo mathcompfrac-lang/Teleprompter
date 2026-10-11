@@ -3,7 +3,16 @@ import Foundation
 enum Constants {
     // App 信息
     static let appName = "悬浮提词器"
-    static let appVersion = "1.0.1"
+    static let appVersion: String = {
+        let version = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleShortVersionString"
+        ) as? String ?? "1.0.2"
+        let build = Bundle.main.object(
+            forInfoDictionaryKey: "CFBundleVersion"
+        ) as? String
+        guard let build, !build.isEmpty else { return version }
+        return "\(version) (\(build))"
+    }()
 
     // 试用 - 免费使用次数（与 TicketManager 保持一致）
     static let maxFreeTrials = 7

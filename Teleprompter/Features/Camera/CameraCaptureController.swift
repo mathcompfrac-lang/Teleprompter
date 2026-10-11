@@ -623,15 +623,30 @@ final class CameraCaptureController: NSObject, ObservableObject {
     }
 
     func importVideoForSubtitles(from sourceURL: URL) async throws -> RecordedClip {
+        let unreadableVideoMessage = String(localized: "无法读取选择的视频")
         guard FileManager.default.fileExists(atPath: sourceURL.path) else {
-            throw CameraCaptureFailure(String(localized: "无法读取选择的视频"))
+            throw CameraCaptureFailure("\(unreadableVideoMessage) [V01]")
+        }
+        let sourceValues = try? sourceURL.resourceValues(
+            forKeys: [.isRegularFileKey, .fileSizeKey]
+        )
+        guard sourceValues?.isRegularFile == true,
+              let sourceSize = sourceValues?.fileSize,
+              sourceSize > 0 else {
+            throw CameraCaptureFailure("\(unreadableVideoMessage) [V02]")
         }
 
         try Task.checkCancellation()
-        try FileManager.default.createDirectory(
-            at: temporaryDirectory,
-            withIntermediateDirectories: true
-        )
+        do {
+            try FileManager.default.createDirectory(
+                at: temporaryDirectory,
+                withIntermediateDirectories: true
+            )
+        } catch {
+            throw CameraCaptureFailure(
+                "\(unreadableVideoMessage) [V06 \(CameraCaptureFailure.diagnosticCode(for: error))]"
+            )
+        }
 
         let pathExtension = sourceURL.pathExtension.isEmpty ? "mov" : sourceURL.pathExtension
         let localURL = temporaryDirectory
@@ -650,9 +665,27 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 try FileManager.default.copyItem(at: sourceURL, to: localURL)
             }
 
+            let localValues = try? localURL.resourceValues(
+                forKeys: [.isRegularFileKey, .fileSizeKey]
+            )
+            guard localValues?.isRegularFile == true,
+                  localValues?.fileSize == sourceSize else {
+                throw CameraCaptureFailure("\(unreadableVideoMessage) [V03]")
+            }
+
             let asset = AVURLAsset(url: localURL)
-            guard !(try await asset.loadTracks(withMediaType: .video)).isEmpty else {
-                throw CameraCaptureFailure(String(localized: "无法读取选择的视频"))
+            let videoTracks: [AVAssetTrack]
+            do {
+                videoTracks = try await asset.loadTracks(withMediaType: .video)
+            } catch let error as CancellationError {
+                throw error
+            } catch {
+                throw CameraCaptureFailure(
+                    "\(unreadableVideoMessage) [V04 \(CameraCaptureFailure.diagnosticCode(for: error))]"
+                )
+            }
+            guard !videoTracks.isEmpty else {
+                throw CameraCaptureFailure("\(unreadableVideoMessage) [V05]")
             }
 
             try Task.checkCancellation()
@@ -664,9 +697,17 @@ final class CameraCaptureController: NSObject, ObservableObject {
             )
             savedClips.append(clip)
             return clip
-        } catch {
+        } catch let error as CancellationError {
             try? FileManager.default.removeItem(at: localURL)
             throw error
+        } catch let error as CameraCaptureFailure {
+            try? FileManager.default.removeItem(at: localURL)
+            throw error
+        } catch {
+            try? FileManager.default.removeItem(at: localURL)
+            throw CameraCaptureFailure(
+                "\(unreadableVideoMessage) [V07 \(CameraCaptureFailure.diagnosticCode(for: error))]"
+            )
         }
     }
 
@@ -1454,6 +1495,17 @@ private struct CameraCaptureFailure: LocalizedError {
     }
 
     var errorDescription: String? { message }
+
+    static func diagnosticCode(for error: Error) -> String {
+        var components: [String] = []
+        var currentError: NSError? = error as NSError
+        for _ in 0..<4 {
+            guard let currentError else { break }
+            components.append("\(currentError.domain):\(currentError.code)")
+            currentError = currentError.userInfo[NSUnderlyingErrorKey] as? NSError
+        }
+        return components.joined(separator: ">")
+    }
 }
 
 private final class SavedAssetIdentifierBox: @unchecked Sendable {
