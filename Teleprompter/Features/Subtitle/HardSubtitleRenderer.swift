@@ -25,7 +25,7 @@ final class HardSubtitleRenderer {
             fontSizeRatio: 0.052,
             minimumFontSizeRatio: 0.030,
             maximumTextWidthRatio: 0.88,
-            bottomMarginRatio: 0.075,
+            bottomMarginRatio: 0.25,
             horizontalPaddingRatio: 0.022,
             verticalPaddingRatio: 0.012,
             maximumLineCount: 2,

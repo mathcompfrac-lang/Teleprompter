@@ -245,7 +245,7 @@ struct ContentView: View {
         PhotosPicker(
             selection: $selectedSubtitleVideoItem,
             matching: .videos,
-            preferredItemEncoding: .current,
+            preferredItemEncoding: .compatible,
             photoLibrary: .shared()
         ) {
             HStack(spacing: 12) {
