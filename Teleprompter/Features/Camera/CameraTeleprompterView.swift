@@ -1079,22 +1079,6 @@ private struct RecordedVideoPreviewView: View {
             VideoPlayer(player: playback.player)
                 .ignoresSafeArea()
 
-            if let cue = previewSubtitleCue {
-                VStack {
-                    Spacer()
-                    Text(cue.text)
-                        .font(.title2.weight(.semibold))
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 9)
-                        .background(.black.opacity(0.68), in: RoundedRectangle(cornerRadius: 10))
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 178)
-                }
-                .allowsHitTesting(false)
-            }
-
             VStack {
                 HStack {
                     if clip?.subtitleGenerationState == .completed {
@@ -1304,17 +1288,6 @@ private struct RecordedVideoPreviewView: View {
         }
         .padding(12)
         .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
-    }
-
-    private var previewSubtitleCue: SubtitleCue? {
-        guard let clip,
-              clip.subtitleGenerationState != .completed,
-              !clip.subtitleCues.isEmpty else { return nil }
-        let currentTime = CMTime(seconds: playback.currentTime, preferredTimescale: 600)
-        return clip.subtitleCues.last { cue in
-            CMTimeCompare(cue.startTime, currentTime) <= 0
-                && CMTimeCompare(currentTime, cue.endTime) < 0
-        }
     }
 
     private var playbackScrubber: some View {
