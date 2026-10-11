@@ -1500,9 +1500,9 @@ private struct CameraCaptureFailure: LocalizedError {
         var components: [String] = []
         var currentError: NSError? = error as NSError
         for _ in 0..<4 {
-            guard let currentError else { break }
-            components.append("\(currentError.domain):\(currentError.code)")
-            currentError = currentError.userInfo[NSUnderlyingErrorKey] as? NSError
+            guard let error = currentError else { break }
+            components.append("\(error.domain):\(error.code)")
+            currentError = error.userInfo[NSUnderlyingErrorKey] as? NSError
         }
         return components.joined(separator: ">")
     }

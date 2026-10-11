@@ -956,14 +956,14 @@ private struct SubtitleVideoErrorCode: Sendable {
         var codes: [Self] = []
         var currentError: NSError? = error as NSError
         for _ in 0..<4 {
-            guard let currentError else { break }
+            guard let error = currentError else { break }
             codes.append(
                 SubtitleVideoErrorCode(
-                    domain: String(currentError.domain.prefix(80)),
-                    code: currentError.code
+                    domain: String(error.domain.prefix(80)),
+                    code: error.code
                 )
             )
-            currentError = currentError.userInfo[NSUnderlyingErrorKey] as? NSError
+            currentError = error.userInfo[NSUnderlyingErrorKey] as? NSError
         }
         return codes
     }
