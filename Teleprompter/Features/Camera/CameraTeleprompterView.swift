@@ -434,6 +434,10 @@ struct CameraTeleprompterView: View {
         case .notStarted:
             Image(systemName: "captions.bubble")
                 .accessibilityLabel("尚未生成字幕版")
+        case .reviewing:
+            Image(systemName: "captions.bubble.fill")
+                .foregroundStyle(.blue)
+                .accessibilityLabel("等待校对字幕")
         case .transcribing, .rendering:
             ZStack {
                 Circle()
@@ -472,6 +476,8 @@ struct CameraTeleprompterView: View {
         switch clip.subtitleGenerationState {
         case .notStarted:
             return Text("尚未生成字幕版")
+        case .reviewing:
+            return Text("等待校对字幕")
         case .transcribing, .rendering:
             let status = String(localized: "字幕处理中")
             let percent = Int(clip.subtitleGenerationState.overallProgress * 100)
@@ -652,6 +658,7 @@ struct CameraTeleprompterView: View {
         }
 
         guard countdownTask == nil else { return }
+        let recordingReferenceText = viewModel.text
         countdownTask = Task { @MainActor in
             for value in stride(from: 3, through: 1, by: -1) {
                 countdownValue = value
@@ -666,7 +673,7 @@ struct CameraTeleprompterView: View {
             countdownValue = nil
             countdownTask = nil
             guard !Task.isCancelled, scenePhase == .active else { return }
-            camera.startRecording()
+            camera.startRecording(referenceText: recordingReferenceText)
         }
     }
 
@@ -740,6 +747,8 @@ struct CameraTeleprompterView: View {
             return "等待生成字幕"
         case .transcribing(let progress):
             return subtitleTranscriptionStatusText(for: progress)
+        case .reviewing:
+            return "等待校对字幕"
         case .rendering:
             return "正在写入硬字幕…"
         case .saving:
@@ -928,6 +937,30 @@ private final class RecordedVideoPlaybackController: ObservableObject {
         }
     }
 
+    func seek(to seconds: Double, resumePlayback: Bool) {
+        guard duration > 0 else { return }
+        seekGeneration += 1
+        let generation = seekGeneration
+        let clampedSeconds = max(0, min(duration, seconds))
+        currentTime = clampedSeconds
+        player.pause()
+        player.currentItem?.cancelPendingSeeks()
+        player.seek(
+            to: CMTime(seconds: clampedSeconds, preferredTimescale: 600),
+            toleranceBefore: .zero,
+            toleranceAfter: .zero
+        ) { [weak self] finished in
+            DispatchQueue.main.async {
+                guard let self,
+                      self.seekGeneration == generation,
+                      finished else { return }
+                if self.isActive, resumePlayback {
+                    self.player.play()
+                }
+            }
+        }
+    }
+
     private static func makePreviewImageGenerator(
         asset: AVAsset
     ) -> AVAssetImageGenerator {
@@ -1053,6 +1086,10 @@ private struct RecordedVideoPreviewView: View {
     let preventsDismissDuringSubtitleGeneration: Bool
     @StateObject private var playback: RecordedVideoPlaybackController
     @State private var isSubtitleSavedToastVisible = false
+    @State private var recognitionLanguage: SubtitleRecognitionLanguage
+    @State private var referenceText: String
+    @State private var showRecognitionSettings = false
+    @State private var showSubtitleReview = false
 
     init(
         camera: CameraCaptureController,
@@ -1065,6 +1102,8 @@ private struct RecordedVideoPreviewView: View {
         _playback = StateObject(
             wrappedValue: RecordedVideoPlaybackController(url: clip.previewURL)
         )
+        _recognitionLanguage = State(initialValue: clip.subtitleRecognitionLanguage)
+        _referenceText = State(initialValue: clip.subtitleReferenceText)
     }
 
     private var clip: CameraCaptureController.RecordedClip? {
@@ -1078,6 +1117,10 @@ private struct RecordedVideoPreviewView: View {
 
             VideoPlayer(player: playback.player)
                 .ignoresSafeArea()
+
+            if let cue = activeSubtitleCue {
+                subtitlePreviewOverlay(cue)
+            }
 
             VStack {
                 HStack {
@@ -1135,14 +1178,22 @@ private struct RecordedVideoPreviewView: View {
             playback.replaceSource(with: newURL)
         }
         .onChange(of: clip?.subtitleGenerationState) { oldState, newState in
-            guard oldState != .completed, newState == .completed else { return }
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isSubtitleSavedToastVisible = true
+            if newState == .reviewing {
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 350_000_000)
+                    guard clip?.subtitleGenerationState == .reviewing else { return }
+                    showSubtitleReview = true
+                }
             }
-            UIAccessibility.post(
-                notification: .announcement,
-                argument: String(localized: "硬字幕版已另存到系统照片")
-            )
+            if oldState != .completed, newState == .completed {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isSubtitleSavedToastVisible = true
+                }
+                UIAccessibility.post(
+                    notification: .announcement,
+                    argument: String(localized: "硬字幕版已另存到系统照片")
+                )
+            }
         }
         .task(id: isSubtitleSavedToastVisible) {
             guard isSubtitleSavedToastVisible else { return }
@@ -1155,6 +1206,120 @@ private struct RecordedVideoPreviewView: View {
         .onDisappear {
             playback.stop()
         }
+        .sheet(isPresented: $showRecognitionSettings) {
+            SubtitleRecognitionSettingsView(
+                language: $recognitionLanguage,
+                referenceText: $referenceText,
+                onStart: {
+                    guard let clip else { return }
+                    camera.recognizeSubtitles(
+                        for: clip,
+                        language: recognitionLanguage,
+                        referenceText: referenceText
+                    )
+                    showRecognitionSettings = false
+                }
+            )
+        }
+        .sheet(isPresented: $showSubtitleReview) {
+            if let clip {
+                SubtitleReviewView(
+                    initialCues: clip.subtitleCues,
+                    metadata: clip.subtitleRecognitionMetadata,
+                    onSeek: { cues, seconds in
+                        camera.updateSubtitleCues(for: clip, cues: cues)
+                        playback.seek(to: seconds, resumePlayback: false)
+                    },
+                    onSave: { cues in
+                        camera.updateSubtitleCues(for: clip, cues: cues)
+                    },
+                    onGenerate: { cues in
+                        camera.updateSubtitleCues(for: clip, cues: cues)
+                        if let updatedClip = camera.savedClips.first(where: { $0.id == clip.id }) {
+                            camera.renderReviewedSubtitles(for: updatedClip)
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    private var activeSubtitleCue: SubtitleCue? {
+        guard let clip,
+              clip.subtitledFileURL == nil else { return nil }
+        switch clip.subtitleGenerationState {
+        case .reviewing:
+            break
+        case .failed where !clip.subtitleCues.isEmpty:
+            break
+        default:
+            return nil
+        }
+
+        return clip.subtitleCues.first {
+            playback.currentTime >= $0.startSeconds
+                && playback.currentTime < $0.endSeconds
+        }
+    }
+
+    private func subtitlePreviewOverlay(_ cue: SubtitleCue) -> some View {
+        GeometryReader { proxy in
+            let videoFrame = aspectFitVideoFrame(in: proxy.size)
+            VStack {
+                Spacer()
+                Text(cue.text)
+                    .font(.system(size: max(18, videoFrame.width * 0.045), weight: .semibold))
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.72)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 9))
+                    .frame(maxWidth: videoFrame.width * 0.88)
+                Spacer()
+                    .frame(
+                        height: max(
+                            0,
+                            proxy.size.height - videoFrame.maxY + videoFrame.height * 0.25
+                        )
+                    )
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func aspectFitVideoFrame(in containerSize: CGSize) -> CGRect {
+        guard let thumbnailSize = clip?.thumbnail?.size,
+              thumbnailSize.width > 0,
+              thumbnailSize.height > 0,
+              containerSize.width > 0,
+              containerSize.height > 0 else {
+            return CGRect(origin: .zero, size: containerSize)
+        }
+
+        let videoAspectRatio = thumbnailSize.width / thumbnailSize.height
+        let containerAspectRatio = containerSize.width / containerSize.height
+        let videoSize: CGSize
+        if videoAspectRatio > containerAspectRatio {
+            videoSize = CGSize(
+                width: containerSize.width,
+                height: containerSize.width / videoAspectRatio
+            )
+        } else {
+            videoSize = CGSize(
+                width: containerSize.height * videoAspectRatio,
+                height: containerSize.height
+            )
+        }
+        return CGRect(
+            x: (containerSize.width - videoSize.width) / 2,
+            y: (containerSize.height - videoSize.height) / 2,
+            width: videoSize.width,
+            height: videoSize.height
+        )
     }
 
     @ViewBuilder
@@ -1164,7 +1329,9 @@ private struct RecordedVideoPreviewView: View {
             case .notStarted:
                 if #available(iOS 26.0, *) {
                     Button {
-                        camera.generateSubtitledVideo(for: clip)
+                        recognitionLanguage = clip.subtitleRecognitionLanguage
+                        referenceText = clip.subtitleReferenceText
+                        showRecognitionSettings = true
                     } label: {
                         Label("识别字幕", systemImage: "captions.bubble")
                             .font(.headline)
@@ -1187,6 +1354,28 @@ private struct RecordedVideoPreviewView: View {
                             .stroke(.orange.opacity(0.9), lineWidth: 1)
                     }
                 }
+
+            case .reviewing:
+                VStack(spacing: 8) {
+                    if let metadata = clip.subtitleRecognitionMetadata {
+                        Text(metadata.summary)
+                            .font(.caption.monospaced())
+                            .foregroundStyle(.white.opacity(0.82))
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Button {
+                        showSubtitleReview = true
+                    } label: {
+                        Label("校对并生成硬字幕", systemImage: "pencil.and.list.clipboard")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 46)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                }
+                .padding(10)
+                .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
 
             case .transcribing(let progress):
                 subtitleProgressPanel(
@@ -1238,16 +1427,31 @@ private struct RecordedVideoPreviewView: View {
                     .frame(maxHeight: 96)
                     .scrollIndicators(.hidden)
 
-                    Button {
-                        camera.generateSubtitledVideo(for: clip)
-                    } label: {
-                        Label("重试生成字幕版", systemImage: "arrow.clockwise")
-                            .font(.subheadline.weight(.semibold))
-                            .frame(maxWidth: .infinity, minHeight: 44)
+                    if clip.subtitleCues.isEmpty {
+                        Button {
+                            recognitionLanguage = clip.subtitleRecognitionLanguage
+                            referenceText = clip.subtitleReferenceText
+                            showRecognitionSettings = true
+                        } label: {
+                            Label("重试识别", systemImage: "arrow.clockwise")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                        .disabled(camera.isGeneratingSubtitles)
+                    } else {
+                        Button {
+                            showSubtitleReview = true
+                        } label: {
+                            Label("修改字幕后再生成硬字幕", systemImage: "pencil.and.list.clipboard")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                        .disabled(camera.isGeneratingSubtitles)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
-                    .disabled(camera.isGeneratingSubtitles)
                 }
                 .padding(10)
                 .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
@@ -1364,6 +1568,196 @@ private struct RecordedVideoPreviewView: View {
         guard seconds.isFinite, seconds >= 0 else { return "00:00" }
         let totalSeconds = Int(seconds.rounded(.down))
         return String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
+    }
+}
+
+private struct SubtitleRecognitionSettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @Binding var language: SubtitleRecognitionLanguage
+    @Binding var referenceText: String
+    let onStart: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("识别语言", selection: $language) {
+                        ForEach(SubtitleRecognitionLanguage.allCases) { language in
+                            Text(language.localizedName)
+                                .tag(language)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+
+                Section("参考文稿（可选）") {
+                    ZStack(alignment: .topLeading) {
+                        if referenceText.isEmpty {
+                            Text("输入提词稿或关键词")
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 8)
+                                .allowsHitTesting(false)
+                        }
+                        TextEditor(text: $referenceText)
+                            .frame(minHeight: 150)
+                    }
+
+                    Text("参考文稿仅用于校正识别结果，不会替代视频中的语音。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section {
+                    Label("本地处理，音视频不会上传。", systemImage: "lock.shield")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("字幕识别设置")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("开始识别") {
+                        onStart()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+private struct SubtitleReviewView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var cues: [SubtitleCue]
+    let metadata: SubtitleRecognitionMetadata?
+    let onSeek: ([SubtitleCue], Double) -> Void
+    let onSave: ([SubtitleCue]) -> Void
+    let onGenerate: ([SubtitleCue]) -> Void
+
+    init(
+        initialCues: [SubtitleCue],
+        metadata: SubtitleRecognitionMetadata?,
+        onSeek: @escaping ([SubtitleCue], Double) -> Void,
+        onSave: @escaping ([SubtitleCue]) -> Void,
+        onGenerate: @escaping ([SubtitleCue]) -> Void
+    ) {
+        _cues = State(initialValue: initialCues)
+        self.metadata = metadata
+        self.onSeek = onSeek
+        self.onSave = onSave
+        self.onGenerate = onGenerate
+    }
+
+    private var validCues: [SubtitleCue] {
+        cues.filter(\.isValid).sorted {
+            CMTimeCompare($0.startTime, $1.startTime) < 0
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if let metadata {
+                    Section("识别方式") {
+                        Text(metadata.summary)
+                            .font(.footnote.monospaced())
+
+                        if metadata.routes.contains(where: { $0.engine == .dictationTranscriber }) {
+                            Text("当前设备使用兼容识别引擎，准确率可能较低。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                Section {
+                    ForEach($cues) { $cue in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button {
+                                onSeek(validCues, cue.startSeconds)
+                                dismiss()
+                            } label: {
+                                Label(
+                                    "\(formatTime(cue.startSeconds)) – \(formatTime(cue.endSeconds))",
+                                    systemImage: "play.circle"
+                                )
+                                .font(.caption.monospacedDigit().weight(.semibold))
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.blue)
+                            .accessibilityLabel("跳转到此字幕")
+
+                            TextField("校对字幕", text: $cue.text, axis: .vertical)
+                                .lineLimit(1...4)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .onDelete { offsets in
+                        cues.remove(atOffsets: offsets)
+                    }
+                } header: {
+                    Text("校对字幕")
+                } footer: {
+                    Text("识别完成，请校对后生成硬字幕")
+                }
+
+                if validCues.isEmpty {
+                    Text("没有可生成的字幕")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("校对字幕")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存修改") {
+                        onSave(validCues)
+                        dismiss()
+                    }
+                    .disabled(validCues.isEmpty)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    let reviewedCues = validCues
+                    onGenerate(reviewedCues)
+                    dismiss()
+                } label: {
+                    Label("生成硬字幕", systemImage: "captions.bubble.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(validCues.isEmpty)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(.bar)
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    private func formatTime(_ seconds: Double) -> String {
+        guard seconds.isFinite, seconds >= 0 else { return "00:00.0" }
+        let minutes = Int(seconds) / 60
+        let remainingSeconds = seconds - Double(minutes * 60)
+        return String(format: "%02d:%04.1f", minutes, remainingSeconds)
     }
 }
 

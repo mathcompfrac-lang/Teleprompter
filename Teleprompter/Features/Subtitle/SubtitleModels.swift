@@ -1,6 +1,62 @@
 import CoreMedia
 import Foundation
 
+enum SubtitleRecognitionLanguage: String, CaseIterable, Codable, Equatable, Identifiable, Sendable {
+    case chinese
+    case english
+    case bilingual
+
+    var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .chinese:
+            return String(localized: "中文")
+        case .english:
+            return String(localized: "英文")
+        case .bilingual:
+            return String(localized: "中英混合")
+        }
+    }
+
+    var localeIdentifiers: [String] {
+        switch self {
+        case .chinese:
+            return ["zh-CN"]
+        case .english:
+            return ["en-US"]
+        case .bilingual:
+            return ["zh-CN", "en-US"]
+        }
+    }
+}
+
+enum SubtitleRecognitionEngine: String, Equatable, Sendable {
+    case speechTranscriber = "SpeechTranscriber"
+    case dictationTranscriber = "DictationTranscriber"
+}
+
+struct SubtitleRecognitionRoute: Equatable, Sendable {
+    let engine: SubtitleRecognitionEngine
+    let localeIdentifier: String
+}
+
+struct SubtitleRecognitionMetadata: Equatable, Sendable {
+    let routes: [SubtitleRecognitionRoute]
+    let referenceGuidedSelections: Int
+
+    var summary: String {
+        routes
+            .map { "\($0.engine.rawValue) · \($0.localeIdentifier)" }
+            .joined(separator: " / ")
+    }
+}
+
+struct SubtitleTranscriptionResult: Equatable, Sendable {
+    let cues: [SubtitleCue]
+    let metadata: SubtitleRecognitionMetadata
+}
+
 /// 一条与源视频时间轴对齐的字幕。
 struct SubtitleCue: Identifiable, Equatable, Codable, Sendable {
     let id: UUID

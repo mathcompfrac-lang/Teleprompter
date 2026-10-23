@@ -297,6 +297,7 @@ final class HardSubtitleRenderer {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
+            try checkCancellation()
             throw RenderError.exportFailed(message: error.localizedDescription)
         }
         try checkCancellation()

@@ -49,6 +49,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     enum SubtitleGenerationState: Equatable {
         case notStarted
         case transcribing(progress: Double)
+        case reviewing
         case rendering(progress: Double)
         case saving
         case completed
@@ -58,7 +59,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
             switch self {
             case .transcribing, .rendering, .saving:
                 return true
-            case .notStarted, .completed, .failed:
+            case .notStarted, .reviewing, .completed, .failed:
                 return false
             }
         }
@@ -70,6 +71,8 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 return 0
             case .transcribing(let progress):
                 return min(max(progress, 0), 1) * 0.6
+            case .reviewing:
+                return 0.6
             case .rendering(let progress):
                 return 0.6 + min(max(progress, 0), 1) * 0.35
             case .saving:
@@ -95,7 +98,10 @@ final class CameraCaptureController: NSObject, ObservableObject {
         let source: Source
         let fileURL: URL
         let thumbnail: UIImage?
+        var subtitleRecognitionLanguage: SubtitleRecognitionLanguage = .chinese
+        var subtitleReferenceText: String = ""
         var subtitleCues: [SubtitleCue] = []
+        var subtitleRecognitionMetadata: SubtitleRecognitionMetadata?
         var subtitleGenerationState: SubtitleGenerationState = .notStarted
         var subtitledAssetIdentifier: String?
         var subtitledFileURL: URL?
@@ -153,6 +159,8 @@ final class CameraCaptureController: NSObject, ObservableObject {
     private var permissionTask: Task<Void, Never>?
     private var isStartingRecording = false
     private var pendingSaveURL: URL?
+    private var pendingRecordingReferenceText = ""
+    private var pendingRecordingLanguage: SubtitleRecognitionLanguage = .chinese
     private var photoDeletedClipIdentifiers: Set<String> = []
     private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
     private var notificationTokens: [NSObjectProtocol] = []
@@ -282,7 +290,10 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
     }
 
-    func startRecording() {
+    func startRecording(
+        referenceText: String = "",
+        recognitionLanguage: SubtitleRecognitionLanguage = .chinese
+    ) {
         errorMessage = nil
         saveConfirmation = nil
         lastSavedAssetIdentifier = nil
@@ -296,6 +307,8 @@ final class CameraCaptureController: NSObject, ObservableObject {
             return
         }
         guard !isRecording, !isStartingRecording else { return }
+        pendingRecordingReferenceText = referenceText
+        pendingRecordingLanguage = recognitionLanguage
         isStartingRecording = true
 
         let rotationAngle = rotationCoordinator?.videoRotationAngleForHorizonLevelCapture ?? 0
@@ -576,11 +589,15 @@ final class CameraCaptureController: NSObject, ObservableObject {
 
         guard wasSuccessful else {
             errorMessage = error?.localizedDescription ?? "录像失败"
+            pendingRecordingReferenceText = ""
+            pendingRecordingLanguage = .chinese
             removeTemporaryRecording(at: outputURL)
             return
         }
         guard FileManager.default.fileExists(atPath: outputURL.path) else {
             errorMessage = "录像文件不存在"
+            pendingRecordingReferenceText = ""
+            pendingRecordingLanguage = .chinese
             return
         }
 
@@ -617,6 +634,8 @@ final class CameraCaptureController: NSObject, ObservableObject {
         guard !isSaving, let pendingSaveURL else { return }
         self.pendingSaveURL = nil
         hasPendingSave = false
+        pendingRecordingReferenceText = ""
+        pendingRecordingLanguage = .chinese
         errorMessage = nil
         saveConfirmation = nil
         removeTemporaryRecording(at: pendingSaveURL)
@@ -711,7 +730,26 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
     }
 
-    func generateSubtitledVideo(for clip: RecordedClip) {
+    func updateSubtitleCues(for clip: RecordedClip, cues: [SubtitleCue]) {
+        guard subtitleProcessingClipIdentifier == nil,
+              let currentClip = savedClips.first(where: { $0.id == clip.id }),
+              currentClip.subtitleGenerationState != .completed else { return }
+        let validCues = cues.filter(\.isValid).sorted {
+            CMTimeCompare($0.startTime, $1.startTime) < 0
+        }
+        updateSavedClip(identifier: currentClip.id) {
+            $0.subtitleCues = validCues
+            if !validCues.isEmpty {
+                $0.subtitleGenerationState = .reviewing
+            }
+        }
+    }
+
+    func recognizeSubtitles(
+        for clip: RecordedClip,
+        language: SubtitleRecognitionLanguage,
+        referenceText: String
+    ) {
         guard !isSaving,
               deletingClipIdentifier == nil else {
             errorMessage = "请等待当前视频操作完成"
@@ -737,15 +775,65 @@ final class CameraCaptureController: NSObject, ObservableObject {
         saveConfirmation = nil
         subtitleProcessingClipIdentifier = currentClip.id
         updateSavedClip(identifier: currentClip.id) {
+            $0.subtitleRecognitionLanguage = language
+            $0.subtitleReferenceText = referenceText
             $0.subtitleCues = []
+            $0.subtitleRecognitionMetadata = nil
             $0.subtitleGenerationState = .transcribing(progress: 0)
         }
 
         subtitleGenerationTask = Task { [weak self] in
             guard let self else { return }
-            await self.performSubtitleGeneration(
+            await self.performSubtitleRecognition(
                 clipIdentifier: currentClip.id,
-                sourceURL: currentClip.fileURL
+                sourceURL: currentClip.fileURL,
+                language: language,
+                referenceText: referenceText
+            )
+        }
+    }
+
+    func renderReviewedSubtitles(for clip: RecordedClip) {
+        guard !isSaving,
+              deletingClipIdentifier == nil else {
+            errorMessage = "请等待当前视频操作完成"
+            return
+        }
+        guard subtitleProcessingClipIdentifier == nil else {
+            errorMessage = "请等待当前字幕视频生成完成"
+            return
+        }
+        guard let currentClip = savedClips.first(where: { $0.id == clip.id }) else {
+            errorMessage = "找不到需要生成字幕的视频"
+            return
+        }
+        guard currentClip.subtitleGenerationState != .completed else { return }
+        let cues = currentClip.subtitleCues.filter(\.isValid)
+        guard !cues.isEmpty else {
+            errorMessage = String(localized: "没有可生成的字幕")
+            return
+        }
+        guard FileManager.default.fileExists(atPath: currentClip.fileURL.path) else {
+            updateSavedClip(identifier: currentClip.id) {
+                $0.subtitleGenerationState = .failed(message: "原视频临时文件已失效，请重新录制")
+            }
+            return
+        }
+
+        errorMessage = nil
+        saveConfirmation = nil
+        subtitleProcessingClipIdentifier = currentClip.id
+        updateSavedClip(identifier: currentClip.id) {
+            $0.subtitleCues = cues
+            $0.subtitleGenerationState = .rendering(progress: 0)
+        }
+
+        subtitleGenerationTask = Task { [weak self] in
+            guard let self else { return }
+            await self.performSubtitleRendering(
+                clipIdentifier: currentClip.id,
+                sourceURL: currentClip.fileURL,
+                cues: cues
             )
         }
     }
@@ -765,11 +853,12 @@ final class CameraCaptureController: NSObject, ObservableObject {
         HardSubtitleRenderer.shared.cancel()
     }
 
-    private func performSubtitleGeneration(
+    private func performSubtitleRecognition(
         clipIdentifier: String,
-        sourceURL: URL
+        sourceURL: URL,
+        language: SubtitleRecognitionLanguage,
+        referenceText: String
     ) async {
-        var renderedURL: URL?
         defer {
             if subtitleProcessingClipIdentifier == clipIdentifier {
                 subtitleProcessingClipIdentifier = nil
@@ -778,9 +867,10 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
 
         do {
-            let cues = try await LocalSubtitleTranscriber.shared.transcribeVideo(
+            let result = try await LocalSubtitleTranscriber.shared.transcribeVideo(
                 at: sourceURL,
-                locale: Locale(identifier: "zh-CN")
+                language: language,
+                referenceText: referenceText
             ) { [weak self] progress in
                 Task { @MainActor [weak self] in
                     guard let self,
@@ -799,10 +889,37 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 throw CancellationError()
             }
             updateSavedClip(identifier: clipIdentifier) {
-                $0.subtitleCues = cues
-                $0.subtitleGenerationState = .rendering(progress: 0)
+                $0.subtitleCues = result.cues
+                $0.subtitleRecognitionMetadata = result.metadata
+                $0.subtitleGenerationState = .reviewing
             }
+        } catch is CancellationError {
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.subtitleCues = []
+                $0.subtitleRecognitionMetadata = nil
+                $0.subtitleGenerationState = .notStarted
+            }
+        } catch {
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.subtitleGenerationState = .failed(message: error.localizedDescription)
+            }
+        }
+    }
 
+    private func performSubtitleRendering(
+        clipIdentifier: String,
+        sourceURL: URL,
+        cues: [SubtitleCue]
+    ) async {
+        var renderedURL: URL?
+        defer {
+            if subtitleProcessingClipIdentifier == clipIdentifier {
+                subtitleProcessingClipIdentifier = nil
+                subtitleGenerationTask = nil
+            }
+        }
+
+        do {
             let destinationURL = temporaryDirectory
                 .appendingPathComponent("\(UUID().uuidString)-subtitled")
                 .appendingPathExtension("mov")
@@ -837,8 +954,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 try? FileManager.default.removeItem(at: renderedURL)
             }
             updateSavedClip(identifier: clipIdentifier) {
-                $0.subtitleCues = []
-                $0.subtitleGenerationState = .notStarted
+                $0.subtitleGenerationState = .reviewing
             }
         } catch {
             if let renderedURL {
@@ -936,9 +1052,13 @@ final class CameraCaptureController: NSObject, ObservableObject {
                     id: savedAssetIdentifier,
                     source: .cameraCapture(photoAssetIdentifier: savedAssetIdentifier),
                     fileURL: outputURL,
-                    thumbnail: thumbnail
+                    thumbnail: thumbnail,
+                    subtitleRecognitionLanguage: pendingRecordingLanguage,
+                    subtitleReferenceText: pendingRecordingReferenceText
                 )
             )
+            pendingRecordingReferenceText = ""
+            pendingRecordingLanguage = .chinese
             if pendingSaveURL == outputURL {
                 pendingSaveURL = nil
                 hasPendingSave = false

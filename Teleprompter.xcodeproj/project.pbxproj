@@ -666,7 +666,7 @@
                 ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
                 CODE_SIGN_ENTITLEMENTS = "Teleprompter/Teleprompter.entitlements";
                 CODE_SIGN_STYLE = "Automatic";
-                CURRENT_PROJECT_VERSION = 34;
+                CURRENT_PROJECT_VERSION = 35;
                 DEVELOPMENT_TEAM = "2P5UG67845";
                 ENABLE_PREVIEWS = "YES";
                 GCC_OPTIMIZATION_LEVEL = "0";
@@ -691,7 +691,7 @@
                 ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
                 CODE_SIGN_ENTITLEMENTS = "Teleprompter/Teleprompter.entitlements";
                 CODE_SIGN_STYLE = "Automatic";
-                CURRENT_PROJECT_VERSION = 34;
+                CURRENT_PROJECT_VERSION = 35;
                 DEVELOPMENT_TEAM = "2P5UG67845";
                 ENABLE_PREVIEWS = "YES";
                 INFOPLIST_FILE = "Teleprompter/Info.plist";
