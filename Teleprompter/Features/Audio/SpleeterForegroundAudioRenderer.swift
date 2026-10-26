@@ -807,7 +807,8 @@ private final class RenderWorker: @unchecked Sendable {
         )
         let durationSeconds = duration.seconds
 
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation {
+            (continuation: CheckedContinuation<Void, Error>) in
             var completedTracks = Array(repeating: false, count: tracks.count)
             var remainingTrackCount = tracks.count
             var didResume = false
