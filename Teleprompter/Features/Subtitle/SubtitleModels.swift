@@ -39,6 +39,7 @@ enum SubtitleRecognitionEngine: String, Equatable, Sendable {
 enum SubtitleRecognitionProvider: String, CaseIterable, Codable, Equatable, Hashable, Identifiable, Sendable {
     case apple
     case senseVoice
+    case qwen
 
     var id: String { rawValue }
 
@@ -48,6 +49,8 @@ enum SubtitleRecognitionProvider: String, CaseIterable, Codable, Equatable, Hash
             return String(localized: "Apple 本地识别")
         case .senseVoice:
             return String(localized: "SenseVoice 中文增强")
+        case .qwen:
+            return String(localized: "Qwen 云端识别")
         }
     }
 }
@@ -55,6 +58,7 @@ enum SubtitleRecognitionProvider: String, CaseIterable, Codable, Equatable, Hash
 enum SubtitleRecognitionMode: String, CaseIterable, Codable, Equatable, Hashable, Identifiable, Sendable {
     case apple
     case senseVoice
+    case qwen
     case comparison
 
     var id: String { rawValue }
@@ -65,17 +69,31 @@ enum SubtitleRecognitionMode: String, CaseIterable, Codable, Equatable, Hashable
             return String(localized: "Apple 本地识别")
         case .senseVoice:
             return String(localized: "SenseVoice 中文增强")
+        case .qwen:
+            return String(localized: "Qwen 云端识别")
         case .comparison:
-            return String(localized: "A/B 对比")
+            return String(localized: "多引擎对比")
         }
     }
 
     var requiresSenseVoiceModel: Bool {
-        self != .apple
+        self == .senseVoice || self == .comparison
     }
 
     var requiresIOS26: Bool {
-        self != .senseVoice
+        self == .apple
+    }
+
+    var requiresQwenAPI: Bool {
+        self == .qwen || self == .comparison
+    }
+
+    var usesReferenceText: Bool {
+        self == .apple
+    }
+
+    var uploadsAudioToCloud: Bool {
+        requiresQwenAPI
     }
 }
 
@@ -113,6 +131,8 @@ struct SubtitleRecognitionMetadata: Equatable, Sendable {
                 .joined(separator: " / ")
         case .senseVoice:
             return modelIdentifier.map { "SenseVoice · \($0)" } ?? "SenseVoice"
+        case .qwen:
+            return modelIdentifier.map { "Qwen · \($0)" } ?? "Qwen"
         }
     }
 }
@@ -133,9 +153,27 @@ struct SubtitleRecognitionCandidate: Identifiable, Equatable, Sendable {
     }
 }
 
+struct SubtitleRecognitionFailure: Identifiable, Equatable, Sendable {
+    let provider: SubtitleRecognitionProvider
+    let message: String
+
+    var id: SubtitleRecognitionProvider { provider }
+}
+
 struct SubtitleTranscriptionBatchResult: Equatable, Sendable {
     let candidates: [SubtitleRecognitionCandidate]
     let selectedProvider: SubtitleRecognitionProvider
+    let failures: [SubtitleRecognitionFailure]
+
+    init(
+        candidates: [SubtitleRecognitionCandidate],
+        selectedProvider: SubtitleRecognitionProvider,
+        failures: [SubtitleRecognitionFailure] = []
+    ) {
+        self.candidates = candidates
+        self.selectedProvider = selectedProvider
+        self.failures = failures
+    }
 
     var selectedCandidate: SubtitleRecognitionCandidate? {
         candidates.first(where: { $0.provider == selectedProvider }) ?? candidates.first
@@ -272,6 +310,7 @@ enum LocalSubtitleTranscriptionError: Error, Equatable, Sendable {
     case modelInstallationFailed(String)
     case senseVoiceModelNotInstalled
     case senseVoiceModelInvalid
+    case qwenAPIKeyMissing
     case audioLoadFailed(String)
     case emptyAudio
     case emptyTranscript
@@ -299,6 +338,8 @@ extension LocalSubtitleTranscriptionError: LocalizedError {
             return String(localized: "请先下载 SenseVoice 模型。")
         case .senseVoiceModelInvalid:
             return String(localized: "SenseVoice 模型校验失败，请重新下载。")
+        case .qwenAPIKeyMissing:
+            return String(localized: "请先配置 Qwen API Key。")
         case .audioLoadFailed(let reason):
             return "读取视频音轨失败：\(reason)"
         case .emptyAudio:

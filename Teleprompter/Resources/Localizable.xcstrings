@@ -4030,6 +4030,2968 @@
         "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění SenseVoice (2/2)…" } },
         "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör SenseVoice (2/2)…" } }
       }
+    },
+    "多引擎对比" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Multi-Engine Comparison" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "多引擎對比" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مقارنة متعددة المحركات" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Multi-Engine-Vergleich" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comparación entre motores" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Comparaison multi-moteurs" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बहु-इंजन तुलना" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Perbandingan multi-mesin" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Confronto tra più motori" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "複数エンジン比較" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다중 엔진 비교" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Perbandingan berbilang enjin" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Vergelijking met meerdere engines" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Porównanie wielu silników" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Comparação entre vários mecanismos" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сравнение нескольких движков" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "การเปรียบเทียบหลายเอนจิน" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Çoklu motor karşılaştırması" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Порівняння кількох рушіїв" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "So sánh nhiều công cụ" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Porovnání více modulů" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Jämförelse med flera motorer" } }
+      }
+    },
+    "请先配置 Qwen API Key。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Configure a Qwen API Key first." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請先設定 Qwen API Key。" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يُرجى إعداد مفتاح API لـ Qwen أولاً." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Konfigurieren Sie zuerst einen Qwen-API-Schlüssel." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Primero configura una clave de API de Qwen." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Configurez d’abord une clé API Qwen." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "पहले Qwen API कुंजी कॉन्फ़िगर करें।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Konfigurasikan Kunci API Qwen terlebih dahulu." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Configura prima una chiave API Qwen." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "先にQwen APIキーを設定してください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "먼저 Qwen API 키를 구성하세요." } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Sila konfigurasikan Kunci API Qwen dahulu." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Configureer eerst een Qwen-API-sleutel." } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Najpierw skonfiguruj klucz API Qwen." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Configure primeiro uma chave de API da Qwen." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сначала настройте API-ключ Qwen." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "โปรดกำหนดค่าคีย์ API ของ Qwen ก่อน" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Önce bir Qwen API Anahtarı yapılandırın." } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Спочатку налаштуйте API-ключ Qwen." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Hãy cấu hình Khóa API Qwen trước." } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Nejprve nastavte klíč API Qwen." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Konfigurera först en Qwen API-nyckel." } }
+      }
+    },
+    "Qwen 云端识别" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Qwen Cloud Recognition" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "Qwen 雲端辨識" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "التعرّف السحابي عبر Qwen" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Qwen-Cloud-Erkennung" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reconocimiento en la nube de Qwen" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Reconnaissance cloud Qwen" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Qwen क्लाउड पहचान" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Pengenalan cloud Qwen" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Riconoscimento cloud Qwen" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Qwenクラウド認識" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Qwen 클라우드 인식" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Pengecaman awan Qwen" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Qwen-cloudherkenning" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Rozpoznawanie w chmurze Qwen" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Reconhecimento na nuvem da Qwen" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Облачное распознавание Qwen" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "การรู้จำบนคลาวด์ด้วย Qwen" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Qwen bulut tanıma" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Хмарне розпізнавання Qwen" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Nhận dạng Qwen trên đám mây" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Cloudové rozpoznávání Qwen" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Qwen-molnigenkänning" } }
+      }
+    },
+    "保存 API Key" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save API Key" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "儲存 API Key" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حفظ مفتاح API" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "API-Schlüssel speichern" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guardar clave de API" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrer la clé API" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "API कुंजी सहेजें" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Simpan Kunci API" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Salva chiave API" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "APIキーを保存" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "API 키 저장" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Simpan Kunci API" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "API-sleutel opslaan" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Zapisz klucz API" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Salvar chave de API" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сохранить API-ключ" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "บันทึกคีย์ API" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "API Anahtarını Kaydet" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Зберегти API-ключ" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Lưu Khóa API" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Uložit klíč API" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Spara API-nyckel" } }
+      }
+    },
+    "多引擎对比时不使用参考文稿，以免影响公平性。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reference text is not used in multi-engine comparison to keep the comparison fair." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "多引擎對比時不使用參考文稿，以免影響公平性。" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا يُستخدم النص المرجعي في المقارنة متعددة المحركات للحفاظ على عدالة المقارنة." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Beim Multi-Engine-Vergleich wird kein Referenztext verwendet, damit der Vergleich fair bleibt." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La comparación entre motores no utiliza el texto de referencia para mantener la imparcialidad." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Le texte de référence n’est pas utilisé dans la comparaison multi-moteurs afin de préserver l’équité." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "निष्पक्ष तुलना के लिए बहु-इंजन तुलना में संदर्भ टेक्स्ट का उपयोग नहीं किया जाता।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Teks referensi tidak digunakan dalam perbandingan multi-mesin agar perbandingan tetap adil." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Il testo di riferimento non viene usato nel confronto tra più motori per mantenerlo equo." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "公平性を保つため、複数エンジン比較では参照原稿を使用しません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "공정한 비교를 위해 다중 엔진 비교에서는 참조 원고를 사용하지 않습니다." } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Teks rujukan tidak digunakan dalam perbandingan berbilang enjin agar perbandingan kekal adil." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Bij de vergelijking met meerdere engines wordt geen referentietekst gebruikt, zodat de vergelijking eerlijk blijft." } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "W porównaniu wielu silników tekst referencyjny nie jest używany, aby zachować rzetelność porównania." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "O texto de referência não é usado na comparação entre vários mecanismos para manter a imparcialidade." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "При сравнении нескольких движков справочный текст не используется, чтобы сравнение оставалось объективным." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "การเปรียบเทียบหลายเอนจินจะไม่ใช้ข้อความอ้างอิงเพื่อให้การเปรียบเทียบเป็นธรรม" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Karşılaştırmanın adil olması için çoklu motor karşılaştırmasında referans metin kullanılmaz." } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Під час порівняння кількох рушіїв довідковий текст не використовується, щоб порівняння залишалося об’єктивним." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Không dùng văn bản tham chiếu khi so sánh nhiều công cụ để bảo đảm công bằng." } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Při porovnání více modulů se nepoužívá referenční text, aby porovnání zůstalo férové." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Referenstext används inte vid jämförelse med flera motorer för att hålla jämförelsen rättvis." } }
+      }
+    },
+    "更新 API Key" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Update API Key" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "更新 API Key" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تحديث مفتاح API" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "API-Schlüssel aktualisieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualizar clave de API" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mettre à jour la clé API" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "API कुंजी अपडेट करें" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Perbarui Kunci API" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiorna chiave API" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "APIキーを更新" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "API 키 업데이트" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Kemas Kini Kunci API" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "API-sleutel bijwerken" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Zaktualizuj klucz API" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Atualizar chave de API" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обновить API-ключ" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "อัปเดตคีย์ API" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "API Anahtarını Güncelle" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Оновити API-ключ" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Cập nhật Khóa API" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Aktualizovat klíč API" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Uppdatera API-nyckel" } }
+      }
+    },
+    "删除 API Key" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete API Key" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除 API Key" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف مفتاح API" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "API-Schlüssel löschen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar clave de API" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer la clé API" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "API कुंजी हटाएँ" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Hapus Kunci API" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Elimina chiave API" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "APIキーを削除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "API 키 삭제" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Padam Kunci API" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "API-sleutel verwijderen" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Usuń klucz API" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Excluir chave de API" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалить API-ключ" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ลบคีย์ API" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "API Anahtarını Sil" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Видалити API-ключ" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Xóa Khóa API" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Odstranit klíč API" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Radera API-nyckel" } }
+      }
+    },
+    "识别对比结果" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recognition Comparison Results" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "辨識對比結果" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نتائج مقارنة التعرّف" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ergebnisse des Erkennungsvergleichs" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Resultados de la comparación de reconocimiento" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Résultats de la comparaison des reconnaissances" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "पहचान तुलना परिणाम" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Hasil perbandingan pengenalan" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Risultati del confronto del riconoscimento" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "認識比較結果" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "인식 비교 결과" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Hasil perbandingan pengecaman" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Resultaten van herkenningsvergelijking" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Wyniki porównania rozpoznawania" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Resultados da comparação de reconhecimento" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Результаты сравнения распознавания" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ผลการเปรียบเทียบการรู้จำ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Tanıma karşılaştırma sonuçları" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Результати порівняння розпізнавання" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Kết quả so sánh nhận dạng" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Výsledky porovnání rozpoznávání" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Resultat av igenkänningsjämförelsen" } }
+      }
+    },
+    "同一视频依次运行 Apple、SenseVoice 和 Qwen。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Runs Apple, SenseVoice, and Qwen sequentially on the same video." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "同一影片依序執行 Apple、SenseVoice 和 Qwen。" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يتم تشغيل Apple وSenseVoice وQwen بالتتابع على الفيديو نفسه." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice und Qwen werden nacheinander für dasselbe Video ausgeführt." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice y Qwen se ejecutan de forma consecutiva en el mismo vídeo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice et Qwen sont exécutés successivement sur la même vidéo." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "एक ही वीडियो पर Apple, SenseVoice और Qwen को क्रम से चलाया जाता है।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Apple, SenseVoice, dan Qwen secara berurutan pada video yang sama." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice e Qwen vengono eseguiti in sequenza sullo stesso video." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "同じビデオでApple、SenseVoice、Qwenを順番に実行します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "동일한 동영상에서 Apple, SenseVoice 및 Qwen을 차례로 실행합니다." } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Apple, SenseVoice dan Qwen secara berturutan pada video yang sama." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice en Qwen worden na elkaar op dezelfde video uitgevoerd." } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Na tym samym nagraniu uruchamiane są kolejno Apple, SenseVoice i Qwen." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice e Qwen são executados em sequência no mesmo vídeo." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "На одном видео последовательно запускаются Apple, SenseVoice и Qwen." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เรียกใช้ Apple, SenseVoice และ Qwen ตามลำดับกับวิดีโอเดียวกัน" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice ve Qwen aynı videoda sırayla çalıştırılır." } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "На одному відео послідовно запускаються Apple, SenseVoice і Qwen." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Chạy lần lượt Apple, SenseVoice và Qwen trên cùng một video." } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Na stejném videu se postupně spustí Apple, SenseVoice a Qwen." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Apple, SenseVoice och Qwen körs i tur och ordning på samma video." } }
+      }
+    },
+    "同一视频依次运行 SenseVoice 和 Qwen；Apple 识别需要 iOS 26。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Runs SenseVoice and Qwen sequentially on the same video; Apple recognition requires iOS 26." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "同一影片依序執行 SenseVoice 和 Qwen；Apple 辨識需要 iOS 26。" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يتم تشغيل SenseVoice وQwen بالتتابع على الفيديو نفسه؛ يتطلب تعرّف Apple نظام iOS 26." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice und Qwen werden nacheinander für dasselbe Video ausgeführt; die Apple-Erkennung erfordert iOS 26." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice y Qwen se ejecutan de forma consecutiva en el mismo vídeo; el reconocimiento de Apple requiere iOS 26." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice et Qwen sont exécutés successivement sur la même vidéo ; la reconnaissance Apple nécessite iOS 26." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "एक ही वीडियो पर SenseVoice और Qwen को क्रम से चलाया जाता है; Apple पहचान के लिए iOS 26 आवश्यक है।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice dan Qwen secara berurutan pada video yang sama; pengenalan Apple memerlukan iOS 26." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice e Qwen vengono eseguiti in sequenza sullo stesso video; il riconoscimento Apple richiede iOS 26." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "同じビデオでSenseVoiceとQwenを順番に実行します。Apple認識にはiOS 26が必要です。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "동일한 동영상에서 SenseVoice와 Qwen을 차례로 실행합니다. Apple 인식에는 iOS 26이 필요합니다." } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice dan Qwen secara berturutan pada video yang sama; pengecaman Apple memerlukan iOS 26." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice en Qwen worden na elkaar op dezelfde video uitgevoerd; Apple-herkenning vereist iOS 26." } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Na tym samym nagraniu uruchamiane są kolejno SenseVoice i Qwen; rozpoznawanie Apple wymaga systemu iOS 26." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice e Qwen são executados em sequência no mesmo vídeo; o reconhecimento da Apple requer o iOS 26." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "На одном видео последовательно запускаются SenseVoice и Qwen; для распознавания Apple требуется iOS 26." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เรียกใช้ SenseVoice และ Qwen ตามลำดับกับวิดีโอเดียวกัน โดยการรู้จำของ Apple ต้องใช้ iOS 26" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice ve Qwen aynı videoda sırayla çalıştırılır; Apple tanıma için iOS 26 gerekir." } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "На одному відео послідовно запускаються SenseVoice і Qwen; для розпізнавання Apple потрібна iOS 26." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Chạy lần lượt SenseVoice và Qwen trên cùng một video; tính năng nhận dạng của Apple yêu cầu iOS 26." } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Na stejném videu se postupně spustí SenseVoice a Qwen; rozpoznávání Apple vyžaduje iOS 26." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice och Qwen körs i tur och ordning på samma video; Apple-igenkänning kräver iOS 26." } }
+      }
+    },
+    "未完成的识别引擎" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recognition Engines Not Completed" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "未完成的辨識引擎" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "محركات التعرّف غير المكتملة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nicht abgeschlossene Erkennungs-Engines" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Motores de reconocimiento sin completar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Moteurs de reconnaissance non terminés" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "अधूरे पहचान इंजन" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Mesin pengenalan yang belum selesai" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Motori di riconoscimento non completati" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "完了しなかった認識エンジン" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "완료되지 않은 인식 엔진" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Enjin pengecaman yang belum selesai" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Niet-voltooide herkenningsengines" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Nieukończone silniki rozpoznawania" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Mecanismos de reconhecimento não concluídos" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Незавершённые движки распознавания" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เอนจินการรู้จำที่ยังไม่เสร็จ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Tamamlanmamış tanıma motorları" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Незавершені рушії розпізнавання" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Các công cụ nhận dạng chưa hoàn tất" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Nedokončené moduly rozpoznávání" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Igenkänningsmotorer som inte slutförts" } }
+      }
+    },
+    "需要联网，并可能产生 Qwen API 调用费用。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "An internet connection is required, and Qwen API usage charges may apply." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "需要網路連線，且可能產生 Qwen API 呼叫費用。" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يلزم اتصال بالإنترنت وقد تُطبّق رسوم استخدام واجهة Qwen API." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Eine Internetverbindung ist erforderlich; für die Nutzung der Qwen-API können Gebühren anfallen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se requiere conexión a Internet y pueden aplicarse cargos por el uso de la API de Qwen." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Une connexion Internet est requise et des frais d’utilisation de l’API Qwen peuvent s’appliquer." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "इंटरनेट कनेक्शन आवश्यक है और Qwen API उपयोग शुल्क लग सकता है।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Diperlukan koneksi internet dan biaya penggunaan API Qwen mungkin berlaku." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "È necessaria una connessione Internet e potrebbero essere addebitati costi per l’uso dell’API Qwen." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インターネット接続が必要で、Qwen APIの利用料金が発生する場合があります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "인터넷 연결이 필요하며 Qwen API 사용 요금이 발생할 수 있습니다." } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Sambungan Internet diperlukan dan caj penggunaan API Qwen mungkin dikenakan." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Een internetverbinding is vereist en er kunnen kosten voor het gebruik van de Qwen-API gelden." } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Wymagane jest połączenie z Internetem i mogą zostać naliczone opłaty za korzystanie z API Qwen." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "É necessária uma conexão com a internet e podem ser cobradas taxas pelo uso da API da Qwen." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Требуется подключение к Интернету; за использование API Qwen может взиматься плата." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ต้องเชื่อมต่ออินเทอร์เน็ตและอาจมีค่าบริการการใช้ API ของ Qwen" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İnternet bağlantısı gerekir ve Qwen API kullanım ücretleri uygulanabilir." } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Потрібне підключення до Інтернету; за використання API Qwen може стягуватися плата." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Cần kết nối Internet và có thể phát sinh phí sử dụng API Qwen." } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Je vyžadováno připojení k internetu a mohou být účtovány poplatky za používání API Qwen." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Internetanslutning krävs och avgifter för Qwen API-användning kan tillkomma." } }
+      }
+    },
+    "音频会上传到阿里云 Qwen 进行识别。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Audio will be uploaded to Alibaba Cloud Qwen for recognition." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "音訊會上傳至阿里雲 Qwen 進行辨識。" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "سيتم تحميل الصوت إلى Qwen على سحابة Alibaba للتعرّف عليه." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Audio wird zur Erkennung an Qwen in Alibaba Cloud hochgeladen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El audio se subirá a Qwen de Alibaba Cloud para su reconocimiento." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L’audio sera envoyé à Qwen sur Alibaba Cloud pour la reconnaissance." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "पहचान के लिए ऑडियो Alibaba Cloud Qwen पर अपलोड किया जाएगा।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Audio akan diunggah ke Qwen di Alibaba Cloud untuk dikenali." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "L’audio verrà caricato su Qwen di Alibaba Cloud per il riconoscimento." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "音声は認識のためAlibaba CloudのQwenにアップロードされます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "인식을 위해 오디오가 Alibaba Cloud Qwen에 업로드됩니다." } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Audio akan dimuat naik ke Qwen di Alibaba Cloud untuk pengecaman." } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Audio wordt voor herkenning geüpload naar Qwen in Alibaba Cloud." } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Dźwięk zostanie przesłany do Qwen w Alibaba Cloud w celu rozpoznania." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "O áudio será enviado ao Qwen da Alibaba Cloud para reconhecimento." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Аудио будет загружено в Qwen в Alibaba Cloud для распознавания." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เสียงจะถูกอัปโหลดไปยัง Qwen บน Alibaba Cloud เพื่อทำการรู้จำ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Ses, tanıma için Alibaba Cloud Qwen’e yüklenir." } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Аудіо буде завантажено до Qwen в Alibaba Cloud для розпізнавання." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Âm thanh sẽ được tải lên Qwen trên Alibaba Cloud để nhận dạng." } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Zvuk bude odeslán do služby Qwen v Alibaba Cloud k rozpoznání." } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Ljudet laddas upp till Qwen i Alibaba Cloud för igenkänning." } }
+      }
+    },
+    "粘贴 DashScope API Key" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paste DashScope API Key" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "貼上 DashScope API Key" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لصق مفتاح DashScope API" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "DashScope-API-Schlüssel einfügen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pegar clave de API de DashScope" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Coller la clé API DashScope" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "DashScope API कुंजी चिपकाएँ" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Tempel Kunci API DashScope" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Incolla chiave API DashScope" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "DashScope APIキーを貼り付け" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "DashScope API 키 붙여넣기" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Tampal Kunci API DashScope" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "DashScope-API-sleutel plakken" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Wklej klucz API DashScope" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Colar chave de API do DashScope" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вставить API-ключ DashScope" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "วางคีย์ API ของ DashScope" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "DashScope API Anahtarını Yapıştır" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Вставити API-ключ DashScope" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Dán Khóa API DashScope" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Vložit klíč API DashScope" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Klistra in DashScope API-nyckel" } }
+      }
+    },
+    "粘贴新的 DashScope API Key" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paste New DashScope API Key" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "貼上新的 DashScope API Key" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لصق مفتاح DashScope API جديد" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Neuen DashScope-API-Schlüssel einfügen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pegar nueva clave de API de DashScope" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Coller la nouvelle clé API DashScope" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "नई DashScope API कुंजी चिपकाएँ" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Tempel Kunci API DashScope baru" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Incolla nuova chiave API DashScope" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新しいDashScope APIキーを貼り付け" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "새 DashScope API 키 붙여넣기" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Tampal Kunci API DashScope baharu" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Nieuwe DashScope-API-sleutel plakken" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Wklej nowy klucz API DashScope" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Colar nova chave de API do DashScope" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Вставить новый API-ключ DashScope" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "วางคีย์ API ใหม่ของ DashScope" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yeni DashScope API Anahtarını Yapıştır" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Вставити новий API-ключ DashScope" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Dán Khóa API DashScope mới" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Vložit nový klíč API DashScope" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Klistra in ny DashScope API-nyckel" } }
+      }
+    },
+    "正在等待 Qwen 转写…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waiting for Qwen Transcription…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在等待 Qwen 轉寫…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "في انتظار تفريغ Qwen…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Warten auf Qwen-Transkription…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esperando la transcripción de Qwen…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "En attente de la transcription Qwen…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Qwen ट्रांसक्रिप्शन की प्रतीक्षा हो रही है…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menunggu transkripsi Qwen…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "In attesa della trascrizione Qwen…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Qwenの文字起こしを待機中…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Qwen 음성 변환 대기 중…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menunggu transkripsi Qwen…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Wachten op Qwen-transcriptie…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Oczekiwanie na transkrypcję Qwen…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aguardando a transcrição do Qwen…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ожидание расшифровки Qwen…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังรอการถอดเสียงจาก Qwen…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Qwen dökümü bekleniyor…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Очікування транскрибування Qwen…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chờ Qwen phiên âm…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Čekání na přepis Qwen…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Väntar på Qwen-transkribering…" } }
+      }
+    },
+    "正在上传音频到 Qwen…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Uploading Audio to Qwen…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在上傳音訊至 Qwen…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تحميل الصوت إلى Qwen…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Audio wird zu Qwen hochgeladen…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Subiendo audio a Qwen…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Envoi de l’audio à Qwen…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "ऑडियो Qwen पर अपलोड हो रहा है…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Mengunggah audio ke Qwen…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Caricamento audio su Qwen…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "音声をQwenにアップロード中…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Qwen에 오디오 업로드 중…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Memuat naik audio ke Qwen…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Audio uploaden naar Qwen…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Przesyłanie dźwięku do Qwen…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Enviando áudio para o Qwen…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Загрузка аудио в Qwen…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังอัปโหลดเสียงไปยัง Qwen…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Ses Qwen’e yükleniyor…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Завантаження аудіо до Qwen…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang tải âm thanh lên Qwen…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Nahrávání zvuku do Qwen…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Laddar upp ljud till Qwen…" } }
+      }
+    },
+    "正在识别字幕…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recognizing Subtitles…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在辨識字幕…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ التعرّف على الترجمة النصية…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Untertitel werden erkannt…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reconociendo subtítulos…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Reconnaissance des sous-titres…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "उपशीर्षक पहचाने जा रहे हैं…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Mengenali subtitel…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Riconoscimento dei sottotitoli…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "字幕を認識中…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "자막 인식 중…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Mengecam sari kata…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Ondertitels herkennen…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Rozpoznawanie napisów…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Reconhecendo legendas…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Распознавание субтитров…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังรู้จำคำบรรยาย…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Altyazılar tanınıyor…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Розпізнавання субтитрів…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang nhận dạng phụ đề…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Rozpoznávání titulků…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Känner igen undertexter…" } }
+      }
+    },
+    "正在运行 Apple 本地识别…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running Apple On-Device Recognition…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在執行 Apple 本機辨識…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تشغيل تعرّف Apple على الجهاز…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Apple-Erkennung auf dem Gerät wird ausgeführt…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutando el reconocimiento local de Apple…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécution de la reconnaissance Apple sur l’appareil…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Apple ऑन-डिवाइस पहचान चल रही है…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan pengenalan Apple di perangkat…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esecuzione del riconoscimento Apple sul dispositivo…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Appleオンデバイス認識を実行中…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Apple 온디바이스 인식 실행 중…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan pengecaman Apple pada peranti…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Apple-herkenning op het apparaat uitvoeren…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Uruchamianie rozpoznawania Apple na urządzeniu…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Executando o reconhecimento da Apple no dispositivo…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Запуск локального распознавания Apple…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังเรียกใช้การรู้จำบนอุปกรณ์ของ Apple…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Apple aygıt içi tanıma çalıştırılıyor…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Запуск локального розпізнавання Apple…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chạy tính năng nhận dạng Apple trên thiết bị…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění rozpoznávání Apple v zařízení…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör Apple-igenkänning på enheten…" } }
+      }
+    },
+    "正在运行 Apple（1/3）…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running Apple (1/3)…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在執行 Apple（1/3）…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تشغيل Apple (1/3)…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Apple wird ausgeführt (1/3)…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutando Apple (1/3)…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécution d’Apple (1/3)…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Apple चल रहा है (1/3)…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Apple (1/3)…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esecuzione di Apple (1/3)…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Appleを実行中（1/3）…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Apple 실행 중(1/3)…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Apple (1/3)…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Apple uitvoeren (1/3)…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Uruchamianie Apple (1/3)…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Executando Apple (1/3)…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполняется Apple (1/3)…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังเรียกใช้ Apple (1/3)…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Apple çalıştırılıyor (1/3)…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Виконується Apple (1/3)…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chạy Apple (1/3)…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění Apple (1/3)…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör Apple (1/3)…" } }
+      }
+    },
+    "正在运行 Qwen（2/2）…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running Qwen (2/2)…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在執行 Qwen（2/2）…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تشغيل Qwen (2/2)…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Qwen wird ausgeführt (2/2)…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutando Qwen (2/2)…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécution de Qwen (2/2)…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Qwen चल रहा है (2/2)…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Qwen (2/2)…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esecuzione di Qwen (2/2)…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Qwenを実行中（2/2）…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Qwen 실행 중(2/2)…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Qwen (2/2)…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Qwen uitvoeren (2/2)…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Uruchamianie Qwen (2/2)…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Executando Qwen (2/2)…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполняется Qwen (2/2)…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังเรียกใช้ Qwen (2/2)…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Qwen çalıştırılıyor (2/2)…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Виконується Qwen (2/2)…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chạy Qwen (2/2)…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění Qwen (2/2)…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör Qwen (2/2)…" } }
+      }
+    },
+    "正在运行 Qwen（3/3）…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running Qwen (3/3)…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在執行 Qwen（3/3）…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تشغيل Qwen (3/3)…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Qwen wird ausgeführt (3/3)…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutando Qwen (3/3)…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécution de Qwen (3/3)…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Qwen चल रहा है (3/3)…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Qwen (3/3)…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esecuzione di Qwen (3/3)…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Qwenを実行中（3/3）…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Qwen 실행 중(3/3)…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan Qwen (3/3)…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "Qwen uitvoeren (3/3)…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Uruchamianie Qwen (3/3)…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Executando Qwen (3/3)…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполняется Qwen (3/3)…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังเรียกใช้ Qwen (3/3)…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Qwen çalıştırılıyor (3/3)…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Виконується Qwen (3/3)…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chạy Qwen (3/3)…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění Qwen (3/3)…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör Qwen (3/3)…" } }
+      }
+    },
+    "正在运行 SenseVoice…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running SenseVoice…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在執行 SenseVoice…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تشغيل SenseVoice…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice wird ausgeführt…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutando SenseVoice…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécution de SenseVoice…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice चल रहा है…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esecuzione di SenseVoice…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoiceを実行中…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice 실행 중…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice uitvoeren…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Uruchamianie SenseVoice…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Executando SenseVoice…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполняется SenseVoice…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังเรียกใช้ SenseVoice…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice çalıştırılıyor…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Виконується SenseVoice…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chạy SenseVoice…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění SenseVoice…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör SenseVoice…" } }
+      }
+    },
+    "正在运行 SenseVoice（1/2）…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running SenseVoice (1/2)…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在執行 SenseVoice（1/2）…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تشغيل SenseVoice (1/2)…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice wird ausgeführt (1/2)…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutando SenseVoice (1/2)…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécution de SenseVoice (1/2)…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice चल रहा है (1/2)…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice (1/2)…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esecuzione di SenseVoice (1/2)…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoiceを実行中（1/2）…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice 실행 중(1/2)…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice (1/2)…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice uitvoeren (1/2)…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Uruchamianie SenseVoice (1/2)…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Executando SenseVoice (1/2)…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполняется SenseVoice (1/2)…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังเรียกใช้ SenseVoice (1/2)…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice çalıştırılıyor (1/2)…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Виконується SenseVoice (1/2)…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chạy SenseVoice (1/2)…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění SenseVoice (1/2)…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör SenseVoice (1/2)…" } }
+      }
+    },
+    "正在运行 SenseVoice（2/3）…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running SenseVoice (2/3)…" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "正在執行 SenseVoice（2/3）…" } },
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جارٍ تشغيل SenseVoice (2/3)…" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice wird ausgeführt (2/3)…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecutando SenseVoice (2/3)…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Exécution de SenseVoice (2/3)…" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice चल रहा है (2/3)…" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice (2/3)…" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esecuzione di SenseVoice (2/3)…" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoiceを実行中（2/3）…" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice 실행 중(2/3)…" } },
+        "ms" : { "stringUnit" : { "state" : "translated", "value" : "Menjalankan SenseVoice (2/3)…" } },
+        "nl" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice uitvoeren (2/3)…" } },
+        "pl" : { "stringUnit" : { "state" : "translated", "value" : "Uruchamianie SenseVoice (2/3)…" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Executando SenseVoice (2/3)…" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполняется SenseVoice (2/3)…" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "กำลังเรียกใช้ SenseVoice (2/3)…" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "SenseVoice çalıştırılıyor (2/3)…" } },
+        "uk" : { "stringUnit" : { "state" : "translated", "value" : "Виконується SenseVoice (2/3)…" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đang chạy SenseVoice (2/3)…" } },
+        "cs" : { "stringUnit" : { "state" : "translated", "value" : "Spouštění SenseVoice (2/3)…" } },
+        "sv" : { "stringUnit" : { "state" : "translated", "value" : "Kör SenseVoice (2/3)…" } }
+      }
+    },
+    "API Key 仅保存在本机 Keychain，不会写入 IPA 或上传到仓库。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The API Key is stored only in this device’s Keychain. It is not included in the IPA or uploaded to the repository."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Key 僅儲存在本機 Keychain，不會寫入 IPA 或上傳至儲存庫。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُحفظ مفتاح API في سلسلة مفاتيح هذا الجهاز فقط، ولا يتم تضمينه في ملف IPA أو تحميله إلى المستودع."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der API-Schlüssel wird nur im Schlüsselbund dieses Geräts gespeichert. Er wird weder in die IPA-Datei geschrieben noch in das Repository hochgeladen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clave de API solo se guarda en el llavero de este dispositivo; no se incluye en el IPA ni se sube al repositorio."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé API est stockée uniquement dans le trousseau de cet appareil ; elle n’est ni intégrée à l’IPA ni envoyée au dépôt."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API कुंजी केवल इस डिवाइस की Keychain में सहेजी जाती है; इसे IPA में शामिल या रिपॉजिटरी में अपलोड नहीं किया जाता।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci API hanya disimpan di Keychain perangkat ini; tidak disertakan dalam IPA atau diunggah ke repositori."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La chiave API viene archiviata solo nel portachiavi di questo dispositivo; non viene inclusa nell’IPA né caricata nel repository."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APIキーはこのデバイスのキーチェーンにのみ保存され、IPAに含まれたりリポジトリにアップロードされたりしません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 키는 이 기기의 키체인에만 저장되며 IPA에 포함되거나 저장소에 업로드되지 않습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci API hanya disimpan dalam Keychain peranti ini; ia tidak disertakan dalam IPA atau dimuat naik ke repositori."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De API-sleutel wordt alleen in de sleutelhanger van dit apparaat bewaard en wordt niet in de IPA opgenomen of naar de repository geüpload."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klucz API jest przechowywany wyłącznie w pęku kluczy tego urządzenia; nie jest dołączany do pliku IPA ani przesyłany do repozytorium."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A chave de API é armazenada apenas nas Chaves deste dispositivo; ela não é incluída no IPA nem enviada ao repositório."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-ключ хранится только в связке ключей этого устройства; он не включается в IPA и не отправляется в репозиторий."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คีย์ API จะจัดเก็บไว้เฉพาะใน Keychain ของอุปกรณ์นี้ และจะไม่รวมอยู่ใน IPA หรืออัปโหลดไปยังที่เก็บโค้ด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Anahtarı yalnızca bu aygıtın Anahtar Zinciri’nde saklanır; IPA’ya eklenmez veya depoya yüklenmez."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-ключ зберігається лише у в’язці ключів цього пристрою; він не включається до IPA і не надсилається до репозиторію."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khóa API chỉ được lưu trong Chuỗi khóa của thiết bị này; khóa không được đưa vào IPA hoặc tải lên kho lưu trữ."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klíč API je uložen pouze v klíčence tohoto zařízení; není zahrnut do IPA ani nahráván do repozitáře."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-nyckeln lagras endast i nyckelringen på den här enheten; den inkluderas inte i IPA-filen och laddas inte upp till kodförrådet."
+          }
+        }
+      }
+    },
+    "API Key 已安全保存" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Key Saved Securely"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Key 已安全儲存"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم حفظ مفتاح API بأمان"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-Schlüssel sicher gespeichert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave de API guardada de forma segura"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé API enregistrée de manière sécurisée"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API कुंजी सुरक्षित रूप से सहेजी गई"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci API disimpan dengan aman"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiave API salvata in modo sicuro"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APIキーを安全に保存しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 키가 안전하게 저장됨"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci API disimpan dengan selamat"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-sleutel veilig opgeslagen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klucz API zapisano bezpiecznie"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave de API salva com segurança"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-ключ безопасно сохранён"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "บันทึกคีย์ API อย่างปลอดภัยแล้ว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Anahtarı güvenli şekilde kaydedildi"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-ключ безпечно збережено"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đã lưu Khóa API an toàn"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klíč API byl bezpečně uložen"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-nyckeln sparades säkert"
+          }
+        }
+      }
+    },
+    "Qwen API" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen API"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen API"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "واجهة Qwen البرمجية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen-API"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API de Qwen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen API"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen API"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen API"
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen-API"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API da Qwen"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API ของ Qwen"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen API"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API Qwen"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen API"
+          }
+        }
+      }
+    },
+    "上传到临时存储的音频最长保留 48 小时，之后由服务商自动清理。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio uploaded to temporary storage is retained for up to 48 hours, after which it is automatically deleted by the service provider."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上傳至暫存空間的音訊最長保留 48 小時，之後由服務提供者自動清除。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتم الاحتفاظ بالصوت المرفوع إلى التخزين المؤقت لمدة تصل إلى 48 ساعة، وبعد ذلك يحذفه مزود الخدمة تلقائيًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den temporären Speicher hochgeladene Audiodaten werden höchstens 48 Stunden aufbewahrt und anschließend vom Dienstanbieter automatisch gelöscht."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El audio subido al almacenamiento temporal se conserva durante un máximo de 48 horas; después, el proveedor del servicio lo elimina automáticamente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’audio envoyé vers le stockage temporaire est conservé pendant 48 heures maximum, puis supprimé automatiquement par le fournisseur de services."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अस्थायी स्टोरेज में अपलोड किया गया ऑडियो अधिकतम 48 घंटे तक रखा जाता है, जिसके बाद सेवा प्रदाता इसे अपने-आप हटा देता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio yang diunggah ke penyimpanan sementara disimpan hingga 48 jam, lalu dihapus otomatis oleh penyedia layanan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’audio caricato nell’archivio temporaneo viene conservato per un massimo di 48 ore, dopodiché il fornitore del servizio lo elimina automaticamente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一時ストレージにアップロードされた音声は最長48時間保持され、その後サービスプロバイダによって自動的に削除されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "임시 저장소에 업로드된 오디오는 최대 48시간 동안 보관되며, 이후 서비스 제공업체가 자동으로 삭제합니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio yang dimuat naik ke storan sementara disimpan sehingga 48 jam, kemudian dipadamkan secara automatik oleh penyedia perkhidmatan."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio die naar tijdelijke opslag is geüpload, wordt maximaal 48 uur bewaard en daarna automatisch door de serviceprovider verwijderd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dźwięk przesłany do pamięci tymczasowej jest przechowywany maksymalnie przez 48 godzin, po czym usługodawca automatycznie go usuwa."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O áudio enviado ao armazenamento temporário é mantido por até 48 horas e depois excluído automaticamente pelo provedor do serviço."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудио, загруженное во временное хранилище, хранится не более 48 часов, после чего поставщик услуг автоматически удаляет его."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เสียงที่อัปโหลดไปยังพื้นที่จัดเก็บชั่วคราวจะถูกเก็บไว้นานสูงสุด 48 ชั่วโมง จากนั้นผู้ให้บริการจะลบโดยอัตโนมัติ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçici depolamaya yüklenen ses en fazla 48 saat tutulur ve ardından hizmet sağlayıcı tarafından otomatik olarak silinir."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудіо, завантажене до тимчасового сховища, зберігається щонайбільше 48 годин, після чого постачальник послуг автоматично його видаляє."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Âm thanh tải lên bộ nhớ tạm thời được lưu giữ tối đa 48 giờ, sau đó nhà cung cấp dịch vụ sẽ tự động xóa."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvuk nahraný do dočasného úložiště je uchováván nejvýše 48 hodin a poté jej poskytovatel služby automaticky odstraní."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ljud som laddas upp till tillfällig lagring sparas i högst 48 timmar och raderas sedan automatiskt av tjänsteleverantören."
+          }
+        }
+      }
+    },
+    "请输入有效的 Qwen ASR API Key。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter a valid Qwen ASR API Key."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請輸入有效的 Qwen ASR API Key。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يُرجى إدخال مفتاح Qwen ASR API صالح."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte gib einen gültigen Qwen ASR-API-Schlüssel ein."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce una clave de API válida para Qwen ASR."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez une clé API Qwen ASR valide."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कृपया एक मान्य Qwen ASR API कुंजी दर्ज करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masukkan Kunci API Qwen ASR yang valid."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inserisci una chiave API Qwen ASR valida."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有効なQwen ASR APIキーを入力してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "유효한 Qwen ASR API 키를 입력하세요."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masukkan Kunci API Qwen ASR yang sah."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voer een geldige Qwen ASR-API-sleutel in."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wprowadź prawidłowy klucz API Qwen ASR."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insira uma chave de API válida do Qwen ASR."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите действительный API-ключ Qwen ASR."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โปรดป้อนคีย์ API ของ Qwen ASR ที่ถูกต้อง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lütfen geçerli bir Qwen ASR API Anahtarı girin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введіть дійсний API-ключ Qwen ASR."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy nhập Khóa API Qwen ASR hợp lệ."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadejte platný klíč API Qwen ASR."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ange en giltig Qwen ASR-API-nyckel."
+          }
+        }
+      }
+    },
+    "无法访问已保存的 Qwen ASR API Key。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to access the saved Qwen ASR API Key."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法存取已儲存的 Qwen ASR API Key。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذر الوصول إلى مفتاح Qwen ASR API المحفوظ."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der gespeicherte Qwen ASR-API-Schlüssel ist nicht zugänglich."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede acceder a la clave de API de Qwen ASR guardada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’accéder à la clé API Qwen ASR enregistrée."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सहेजी गई Qwen ASR API कुंजी को एक्सेस नहीं किया जा सका।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak dapat mengakses Kunci API Qwen ASR yang tersimpan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile accedere alla chiave API Qwen ASR salvata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存済みのQwen ASR APIキーにアクセスできません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장된 Qwen ASR API 키에 접근할 수 없습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak dapat mengakses Kunci API Qwen ASR yang disimpan."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De opgeslagen Qwen ASR-API-sleutel is niet toegankelijk."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie można uzyskać dostępu do zapisanego klucza API Qwen ASR."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível acessar a chave de API do Qwen ASR salva."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось получить доступ к сохранённому API-ключу Qwen ASR."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่สามารถเข้าถึงคีย์ API ของ Qwen ASR ที่บันทึกไว้ได้"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaydedilen Qwen ASR API Anahtarına erişilemiyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося отримати доступ до збереженого API-ключа Qwen ASR."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể truy cập Khóa API Qwen ASR đã lưu."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "K uloženému klíči API Qwen ASR nelze získat přístup."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det går inte att komma åt den sparade Qwen ASR-API-nyckeln."
+          }
+        }
+      }
+    },
+    "未配置 Qwen ASR API Key。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR API Key is not configured."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未設定 Qwen ASR API Key。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يتم إعداد مفتاح Qwen ASR API."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Qwen ASR-API-Schlüssel ist nicht konfiguriert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clave de API de Qwen ASR no está configurada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé API Qwen ASR n’est pas configurée."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR API कुंजी कॉन्फ़िगर नहीं की गई है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci API Qwen ASR belum dikonfigurasi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La chiave API Qwen ASR non è configurata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR APIキーが設定されていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR API 키가 구성되지 않았습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kunci API Qwen ASR belum dikonfigurasikan."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Qwen ASR-API-sleutel is niet geconfigureerd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klucz API Qwen ASR nie jest skonfigurowany."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A chave de API do Qwen ASR não está configurada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-ключ Qwen ASR не настроен."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยังไม่ได้กำหนดค่าคีย์ API ของ Qwen ASR"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR API Anahtarı yapılandırılmamış."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-ключ Qwen ASR не налаштовано."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chưa cấu hình Khóa API Qwen ASR."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klíč API Qwen ASR není nakonfigurován."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR-API-nyckeln är inte konfigurerad."
+          }
+        }
+      }
+    },
+    "找不到需要上传给 Qwen ASR 的音频文件。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The audio file to upload to Qwen ASR could not be found."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到要上傳至 Qwen ASR 的音訊檔案。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تعذر العثور على ملف الصوت المطلوب تحميله إلى Qwen ASR."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Audiodatei zum Hochladen zu Qwen ASR wurde nicht gefunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró el archivo de audio que se debe subir a Qwen ASR."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fichier audio à envoyer à Qwen ASR est introuvable."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR पर अपलोड की जाने वाली ऑडियो फ़ाइल नहीं मिली।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File audio yang akan diunggah ke Qwen ASR tidak ditemukan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile trovare il file audio da caricare su Qwen ASR."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRにアップロードする音声ファイルが見つかりません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR에 업로드할 오디오 파일을 찾을 수 없습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fail audio untuk dimuat naik ke Qwen ASR tidak ditemui."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het audiobestand dat naar Qwen ASR moet worden geüpload, is niet gevonden."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono pliku dźwiękowego do przesłania do Qwen ASR."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível encontrar o arquivo de áudio a ser enviado ao Qwen ASR."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось найти аудиофайл для загрузки в Qwen ASR."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่พบไฟล์เสียงที่จะอัปโหลดไปยัง Qwen ASR"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR’a yüklenecek ses dosyası bulunamadı."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося знайти аудіофайл для завантаження в Qwen ASR."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không tìm thấy tệp âm thanh cần tải lên Qwen ASR."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvukový soubor, který má být nahrán do Qwen ASR, nebyl nalezen."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ljudfilen som ska laddas upp till Qwen ASR kunde inte hittas."
+          }
+        }
+      }
+    },
+    "音频文件超过 Qwen ASR 当前允许的上传大小。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The audio file exceeds the current Qwen ASR upload size limit."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音訊檔案超過 Qwen ASR 目前允許的上傳大小。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يتجاوز ملف الصوت حد حجم التحميل الحالي في Qwen ASR."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Audiodatei überschreitet die aktuelle Upload-Größenbeschränkung von Qwen ASR."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El archivo de audio supera el límite de tamaño de subida actual de Qwen ASR."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fichier audio dépasse la taille d’envoi actuellement autorisée par Qwen ASR."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऑडियो फ़ाइल Qwen ASR की मौजूदा अपलोड आकार सीमा से बड़ी है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File audio melebihi batas ukuran unggahan Qwen ASR saat ini."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il file audio supera il limite di dimensione di caricamento attualmente consentito da Qwen ASR."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声ファイルがQwen ASRの現在のアップロードサイズ上限を超えています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오디오 파일이 현재 Qwen ASR에서 허용하는 업로드 크기를 초과했습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fail audio melebihi had saiz muat naik Qwen ASR semasa."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het audiobestand overschrijdt de huidige uploadlimiet van Qwen ASR."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plik dźwiękowy przekracza obecny limit rozmiaru przesyłania Qwen ASR."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O arquivo de áudio excede o limite de tamanho de envio atual do Qwen ASR."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Размер аудиофайла превышает текущий лимит загрузки Qwen ASR."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไฟล์เสียงมีขนาดเกินขีดจำกัดการอัปโหลดปัจจุบันของ Qwen ASR"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ses dosyası Qwen ASR’ın mevcut yükleme boyutu sınırını aşıyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Розмір аудіофайлу перевищує поточний ліміт завантаження Qwen ASR."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tệp âm thanh vượt quá giới hạn kích thước tải lên hiện tại của Qwen ASR."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zvukový soubor překračuje aktuální limit velikosti pro nahrávání do Qwen ASR."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ljudfilen överskrider Qwen ASR:s aktuella storleksgräns för uppladdning."
+          }
+        }
+      }
+    },
+    "连接 Qwen ASR 服务失败，请检查网络后重试。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to connect to the Qwen ASR service. Check your network and try again."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線至 Qwen ASR 服務，請檢查網路後再試一次。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشل الاتصال بخدمة Qwen ASR. تحقق من اتصال الشبكة ثم أعد المحاولة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verbindung zum Qwen ASR-Dienst fehlgeschlagen. Prüfe deine Netzwerkverbindung und versuche es erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo conectar al servicio Qwen ASR. Comprueba la conexión de red e inténtalo de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la connexion au service Qwen ASR. Vérifiez votre connexion réseau, puis réessayez."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR सेवा से कनेक्ट नहीं हो सका। अपना नेटवर्क जाँचें और फिर से कोशिश करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gagal terhubung ke layanan Qwen ASR. Periksa jaringan, lalu coba lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connessione al servizio Qwen ASR non riuscita. Controlla la rete e riprova."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRサービスに接続できませんでした。ネットワークを確認して、もう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 서비스에 연결하지 못했습니다. 네트워크를 확인한 후 다시 시도하세요."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gagal menyambung kepada perkhidmatan Qwen ASR. Semak rangkaian anda dan cuba lagi."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kan geen verbinding maken met de Qwen ASR-service. Controleer je netwerk en probeer het opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie udało się połączyć z usługą Qwen ASR. Sprawdź połączenie sieciowe i spróbuj ponownie."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falha ao conectar ao serviço Qwen ASR. Verifique a rede e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось подключиться к сервису Qwen ASR. Проверьте сеть и повторите попытку."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เชื่อมต่อบริการ Qwen ASR ไม่สำเร็จ โปรดตรวจสอบเครือข่ายแล้วลองอีกครั้ง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR hizmetine bağlanılamadı. Ağ bağlantınızı kontrol edip tekrar deneyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдалося підключитися до сервісу Qwen ASR. Перевірте мережу та повторіть спробу."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể kết nối với dịch vụ Qwen ASR. Hãy kiểm tra mạng rồi thử lại."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Připojení ke službě Qwen ASR se nezdařilo. Zkontrolujte síť a zkuste to znovu."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det gick inte att ansluta till Qwen ASR-tjänsten. Kontrollera nätverket och försök igen."
+          }
+        }
+      }
+    },
+    "Qwen ASR 请求失败（HTTP %d）。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR request failed (HTTP %d)."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 請求失敗（HTTP %d）。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشل طلب Qwen ASR ‏(HTTP %d)."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR-Anfrage fehlgeschlagen (HTTP %d)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error en la solicitud de Qwen ASR (HTTP %d)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de la requête Qwen ASR (HTTP %d)."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR अनुरोध विफल हुआ (HTTP %d)।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permintaan Qwen ASR gagal (HTTP %d)."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richiesta Qwen ASR non riuscita (HTTP %d)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRリクエストに失敗しました（HTTP %d）。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 요청에 실패했습니다(HTTP %d)."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permintaan Qwen ASR gagal (HTTP %d)."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR-verzoek mislukt (HTTP %d)."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Żądanie Qwen ASR nie powiodło się (HTTP %d)."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falha na solicitação ao Qwen ASR (HTTP %d)."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запрос Qwen ASR завершился ошибкой (HTTP %d)."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คำขอ Qwen ASR ล้มเหลว (HTTP %d)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR isteği başarısız oldu (HTTP %d)."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запит Qwen ASR завершився помилкою (HTTP %d)."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yêu cầu Qwen ASR thất bại (HTTP %d)."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Požadavek Qwen ASR selhal (HTTP %d)."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR-begäran misslyckades (HTTP %d)."
+          }
+        }
+      }
+    },
+    "Qwen ASR 识别任务失败。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR recognition task failed."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 辨識工作失敗。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشلت مهمة التعرّف في Qwen ASR."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Qwen ASR-Erkennungsaufgabe ist fehlgeschlagen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tarea de reconocimiento de Qwen ASR ha fallado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tâche de reconnaissance Qwen ASR a échoué."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR पहचान कार्य विफल रहा।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tugas pengenalan Qwen ASR gagal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’attività di riconoscimento Qwen ASR non è riuscita."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRの認識タスクに失敗しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 인식 작업에 실패했습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tugas pengecaman Qwen ASR gagal."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Qwen ASR-herkenningstaak is mislukt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadanie rozpoznawania Qwen ASR nie powiodło się."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tarefa de reconhecimento do Qwen ASR falhou."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Задача распознавания Qwen ASR завершилась ошибкой."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "งานการรู้จำของ Qwen ASR ล้มเหลว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR tanıma görevi başarısız oldu."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завдання розпізнавання Qwen ASR завершилося помилкою."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tác vụ nhận dạng Qwen ASR thất bại."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Úloha rozpoznávání Qwen ASR selhala."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR-igenkänningsuppgiften misslyckades."
+          }
+        }
+      }
+    },
+    "Qwen ASR 识别任务失败（%@）。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR recognition task failed (%@)."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 辨識工作失敗（%@）。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فشلت مهمة التعرّف في Qwen ASR ‏(%@)."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Qwen ASR-Erkennungsaufgabe ist fehlgeschlagen (%@)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tarea de reconocimiento de Qwen ASR ha fallado (%@)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tâche de reconnaissance Qwen ASR a échoué (%@)."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR पहचान कार्य विफल रहा (%@)।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tugas pengenalan Qwen ASR gagal (%@)."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’attività di riconoscimento Qwen ASR non è riuscita (%@)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRの認識タスクに失敗しました（%@）。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 인식 작업에 실패했습니다(%@)."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tugas pengecaman Qwen ASR gagal (%@)."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Qwen ASR-herkenningstaak is mislukt (%@)."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zadanie rozpoznawania Qwen ASR nie powiodło się (%@)."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tarefa de reconhecimento do Qwen ASR falhou (%@)."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Задача распознавания Qwen ASR завершилась ошибкой (%@)."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "งานการรู้จำของ Qwen ASR ล้มเหลว (%@)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR tanıma görevi başarısız oldu (%@)."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завдання розпізнавання Qwen ASR завершилося помилкою (%@)."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tác vụ nhận dạng Qwen ASR thất bại (%@)."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Úloha rozpoznávání Qwen ASR selhala (%@)."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR-igenkänningsuppgiften misslyckades (%@)."
+          }
+        }
+      }
+    },
+    "Qwen ASR 识别超时，请稍后重试。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR recognition timed out. Try again later."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 辨識逾時，請稍後再試。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انتهت مهلة التعرّف في Qwen ASR. يُرجى إعادة المحاولة لاحقًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitüberschreitung bei der Qwen ASR-Erkennung. Versuche es später erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se agotó el tiempo de espera del reconocimiento de Qwen ASR. Inténtalo de nuevo más tarde."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le délai de reconnaissance Qwen ASR a expiré. Réessayez plus tard."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR पहचान का समय समाप्त हो गया। बाद में फिर से कोशिश करें।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waktu pengenalan Qwen ASR habis. Coba lagi nanti."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il riconoscimento Qwen ASR è scaduto. Riprova più tardi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRの認識がタイムアウトしました。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 인식 시간이 초과되었습니다. 나중에 다시 시도하세요."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pengecaman Qwen ASR tamat masa. Cuba lagi kemudian."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Er is een time-out opgetreden bij Qwen ASR-herkenning. Probeer het later opnieuw."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upłynął limit czasu rozpoznawania Qwen ASR. Spróbuj ponownie później."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O reconhecimento do Qwen ASR atingiu o tempo limite. Tente novamente mais tarde."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время ожидания распознавания Qwen ASR истекло. Повторите попытку позже."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การรู้จำของ Qwen ASR หมดเวลา โปรดลองอีกครั้งภายหลัง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR tanıma işlemi zaman aşımına uğradı. Daha sonra tekrar deneyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Час очікування розпізнавання Qwen ASR минув. Повторіть спробу пізніше."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quá thời gian chờ nhận dạng Qwen ASR. Hãy thử lại sau."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vypršel časový limit rozpoznávání Qwen ASR. Zkuste to znovu později."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidsgränsen för Qwen ASR-igenkänning överskreds. Försök igen senare."
+          }
+        }
+      }
+    },
+    "Qwen ASR 返回了无法解析的结果。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR returned a result that could not be parsed."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 傳回了無法解析的結果。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أعاد Qwen ASR نتيجة تعذر تحليلها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR hat ein Ergebnis zurückgegeben, das nicht verarbeitet werden konnte."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR devolvió un resultado que no se pudo analizar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR a renvoyé un résultat impossible à analyser."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ने ऐसा परिणाम लौटाया जिसे पार्स नहीं किया जा सका।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR mengembalikan hasil yang tidak dapat diuraikan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ha restituito un risultato che non è stato possibile analizzare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRから解析できない結果が返されました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR에서 분석할 수 없는 결과를 반환했습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR mengembalikan hasil yang tidak dapat dihuraikan."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR heeft een resultaat geretourneerd dat niet kon worden verwerkt."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR zwrócił wynik, którego nie można przeanalizować."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Qwen ASR retornou um resultado que não pôde ser analisado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR вернул результат, который не удалось разобрать."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ส่งคืนผลลัพธ์ที่ไม่สามารถแยกวิเคราะห์ได้"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ayrıştırılamayan bir sonuç döndürdü."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR повернув результат, який не вдалося проаналізувати."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR trả về kết quả không thể phân tích."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR vrátil výsledek, který nelze zpracovat."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR returnerade ett resultat som inte kunde tolkas."
+          }
+        }
+      }
+    },
+    "Qwen ASR 返回了不安全的结果地址。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR returned an unsafe result URL."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 傳回了不安全的結果網址。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أعاد Qwen ASR عنوان URL غير آمن للنتيجة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR hat eine unsichere Ergebnis-URL zurückgegeben."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR devolvió una URL de resultado no segura."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR a renvoyé une URL de résultat non sécurisée."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ने असुरक्षित परिणाम URL लौटाया।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR mengembalikan URL hasil yang tidak aman."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ha restituito un URL di risultato non sicuro."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRから安全でない結果URLが返されました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR에서 안전하지 않은 결과 URL을 반환했습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR mengembalikan URL hasil yang tidak selamat."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR heeft een onveilige resultaat-URL geretourneerd."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR zwrócił niebezpieczny adres URL wyniku."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Qwen ASR retornou uma URL de resultado não segura."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR вернул небезопасный URL результата."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ส่งคืน URL ผลลัพธ์ที่ไม่ปลอดภัย"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR güvenli olmayan bir sonuç URL’si döndürdü."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR повернув небезпечну URL-адресу результату."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR trả về URL kết quả không an toàn."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR vrátil nebezpečnou adresu URL výsledku."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR returnerade en osäker resultat-URL."
+          }
+        }
+      }
+    },
+    "Qwen ASR 没有识别到有效字幕。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR did not recognize any valid subtitles."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR 未辨識到有效字幕。"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لم يتعرّف Qwen ASR على أي ترجمات صالحة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR hat keine gültigen Untertitel erkannt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR no reconoció ningún subtítulo válido."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR n’a reconnu aucun sous-titre valide."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ने कोई मान्य उपशीर्षक नहीं पहचाना।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR tidak mengenali subtitle yang valid."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR non ha riconosciuto sottotitoli validi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASRは有効な字幕を認識しませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR에서 유효한 자막을 인식하지 못했습니다."
+          }
+        },
+        "ms" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR tidak mengenal pasti sari kata yang sah."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR heeft geen geldige ondertitels herkend."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR nie rozpoznał żadnych prawidłowych napisów."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Qwen ASR não reconheceu nenhuma legenda válida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR не распознал ни одного корректного субтитра."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR ไม่รู้จำคำบรรยายที่ถูกต้อง"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR geçerli bir altyazı algılamadı."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR не розпізнав жодних коректних субтитрів."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR không nhận dạng được phụ đề hợp lệ nào."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR nerozpoznal žádné platné titulky."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qwen ASR identifierade inga giltiga undertexter."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

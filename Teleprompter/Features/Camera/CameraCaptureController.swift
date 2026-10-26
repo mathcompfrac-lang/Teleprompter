@@ -131,12 +131,13 @@ final class CameraCaptureController: NSObject, ObservableObject {
         let source: Source
         let fileURL: URL
         let thumbnail: UIImage?
-        var subtitleRecognitionMode: SubtitleRecognitionMode = .comparison
+        var subtitleRecognitionMode: SubtitleRecognitionMode = .senseVoice
         var subtitleRecognitionLanguage: SubtitleRecognitionLanguage = .chinese
         var subtitleReferenceText: String = ""
         var subtitleCues: [SubtitleCue] = []
         var subtitleRecognitionMetadata: SubtitleRecognitionMetadata?
         var subtitleRecognitionCandidates: [SubtitleRecognitionCandidate] = []
+        var subtitleRecognitionFailures: [SubtitleRecognitionFailure] = []
         var selectedSubtitleProvider: SubtitleRecognitionProvider?
         var subtitleGenerationState: SubtitleGenerationState = .notStarted
         var subtitledAssetIdentifier: String?
@@ -1038,10 +1039,11 @@ final class CameraCaptureController: NSObject, ObservableObject {
         updateSavedClip(identifier: currentClip.id) {
             $0.subtitleRecognitionMode = mode
             $0.subtitleRecognitionLanguage = language
-            $0.subtitleReferenceText = mode == .comparison ? "" : referenceText
+            $0.subtitleReferenceText = mode.usesReferenceText ? referenceText : ""
             $0.subtitleCues = []
             $0.subtitleRecognitionMetadata = nil
             $0.subtitleRecognitionCandidates = []
+            $0.subtitleRecognitionFailures = []
             $0.selectedSubtitleProvider = nil
             $0.subtitleGenerationState = .transcribing(progress: 0)
         }
@@ -1053,7 +1055,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 sourceURL: sourceURL,
                 mode: mode,
                 language: language,
-                referenceText: mode == .comparison ? "" : referenceText
+                referenceText: mode.usesReferenceText ? referenceText : ""
             )
         }
     }
@@ -1166,6 +1168,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
             }
             updateSavedClip(identifier: clipIdentifier) {
                 $0.subtitleRecognitionCandidates = result.candidates
+                $0.subtitleRecognitionFailures = result.failures
                 $0.selectedSubtitleProvider = selectedCandidate.provider
                 $0.subtitleCues = selectedCandidate.result.cues
                 $0.subtitleRecognitionMetadata = selectedCandidate.result.metadata
@@ -1176,6 +1179,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 $0.subtitleCues = []
                 $0.subtitleRecognitionMetadata = nil
                 $0.subtitleRecognitionCandidates = []
+                $0.subtitleRecognitionFailures = []
                 $0.selectedSubtitleProvider = nil
                 $0.subtitleGenerationState = .notStarted
             }

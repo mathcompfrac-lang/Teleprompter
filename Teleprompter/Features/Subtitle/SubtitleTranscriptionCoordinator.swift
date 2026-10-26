@@ -1,6 +1,6 @@
 import Foundation
 
-/// 串行调度 Apple 与 SenseVoice，A/B 模式下复用同一份已提取音频。
+/// 串行调度 Apple、SenseVoice 与 Qwen，对比模式下复用同一份已提取音频。
 final class SubtitleTranscriptionCoordinator: @unchecked Sendable {
     typealias ProgressHandler = @Sendable (SubtitleTranscriptionProgress) -> Void
 
@@ -35,6 +35,17 @@ final class SubtitleTranscriptionCoordinator: @unchecked Sendable {
             guard isReady else {
                 throw LocalSubtitleTranscriptionError.senseVoiceModelNotInstalled
             }
+        }
+        let qwenAPIKey: String?
+        if mode.requiresQwenAPI {
+            qwenAPIKey = await MainActor.run {
+                QwenAPIKeyStore.shared.apiKey
+            }
+            guard qwenAPIKey?.isEmpty == false else {
+                throw LocalSubtitleTranscriptionError.qwenAPIKeyMissing
+            }
+        } else {
+            qwenAPIKey = nil
         }
 
         try Task.checkCancellation()
@@ -84,18 +95,14 @@ final class SubtitleTranscriptionCoordinator: @unchecked Sendable {
                 selectedProvider: .senseVoice
             )
 
-        case .comparison:
-            let apple = try await runApple(
+        case .qwen:
+            guard let qwenAPIKey else {
+                throw LocalSubtitleTranscriptionError.qwenAPIKeyMissing
+            }
+            let candidate = try await runQwen(
                 extractedAudio: extractedAudio,
-                language: .chinese,
-                referenceText: "",
-                progressRange: 0.1...0.53,
-                progress: progress
-            )
-            try Task.checkCancellation()
-            let senseVoice = try await runSenseVoice(
-                extractedAudio: extractedAudio,
-                progressRange: 0.55...0.99,
+                apiKey: qwenAPIKey,
+                progressRange: 0.1...0.99,
                 progress: progress
             )
             progress?(SubtitleTranscriptionProgress(
@@ -103,8 +110,88 @@ final class SubtitleTranscriptionCoordinator: @unchecked Sendable {
                 fractionCompleted: 1
             ))
             return SubtitleTranscriptionBatchResult(
-                candidates: [apple, senseVoice],
-                selectedProvider: .senseVoice
+                candidates: [candidate],
+                selectedProvider: .qwen
+            )
+
+        case .comparison:
+            guard let qwenAPIKey else {
+                throw LocalSubtitleTranscriptionError.qwenAPIKeyMissing
+            }
+            var candidates: [SubtitleRecognitionCandidate] = []
+            var failures: [SubtitleRecognitionFailure] = []
+
+            if #available(iOS 26.0, *) {
+                do {
+                    candidates.append(try await runApple(
+                        extractedAudio: extractedAudio,
+                        language: .chinese,
+                        referenceText: "",
+                        progressRange: 0.1...0.38,
+                        progress: progress
+                    ))
+                } catch {
+                    failures.append(try recognitionFailure(for: .apple, error: error))
+                }
+                try Task.checkCancellation()
+                do {
+                    candidates.append(try await runSenseVoice(
+                        extractedAudio: extractedAudio,
+                        progressRange: 0.4...0.68,
+                        progress: progress
+                    ))
+                } catch {
+                    failures.append(try recognitionFailure(for: .senseVoice, error: error))
+                }
+                try Task.checkCancellation()
+                do {
+                    candidates.append(try await runQwen(
+                        extractedAudio: extractedAudio,
+                        apiKey: qwenAPIKey,
+                        progressRange: 0.7...0.99,
+                        progress: progress
+                    ))
+                } catch {
+                    failures.append(try recognitionFailure(for: .qwen, error: error))
+                }
+            } else {
+                do {
+                    candidates.append(try await runSenseVoice(
+                        extractedAudio: extractedAudio,
+                        progressRange: 0.1...0.53,
+                        progress: progress
+                    ))
+                } catch {
+                    failures.append(try recognitionFailure(for: .senseVoice, error: error))
+                }
+                try Task.checkCancellation()
+                do {
+                    candidates.append(try await runQwen(
+                        extractedAudio: extractedAudio,
+                        apiKey: qwenAPIKey,
+                        progressRange: 0.55...0.99,
+                        progress: progress
+                    ))
+                } catch {
+                    failures.append(try recognitionFailure(for: .qwen, error: error))
+                }
+            }
+
+            guard !candidates.isEmpty else {
+                throw LocalSubtitleTranscriptionError.recognitionFailed(
+                    failures.map(\.message).joined(separator: " / ")
+                )
+            }
+            progress?(SubtitleTranscriptionProgress(
+                phase: .completed,
+                fractionCompleted: 1
+            ))
+            return SubtitleTranscriptionBatchResult(
+                candidates: candidates,
+                selectedProvider: candidates.contains(where: { $0.provider == .qwen })
+                    ? .qwen
+                    : candidates[0].provider,
+                failures: failures
             )
         }
     }
@@ -155,6 +242,42 @@ final class SubtitleTranscriptionCoordinator: @unchecked Sendable {
         return SubtitleRecognitionCandidate(
             provider: .senseVoice,
             result: result.withRecognitionDuration(duration)
+        )
+    }
+
+    private func runQwen(
+        extractedAudio: ExtractedSubtitleAudio,
+        apiKey: String,
+        progressRange: ClosedRange<Double>,
+        progress: ProgressHandler?
+    ) async throws -> SubtitleRecognitionCandidate {
+        let startedAt = ProcessInfo.processInfo.systemUptime
+        let result = try await QwenASRSubtitleTranscriber.shared.transcribeAudio(
+            at: extractedAudio.url,
+            timelineOffset: extractedAudio.timelineOffset,
+            apiKey: apiKey,
+            progress: mappedProgress(
+                to: progressRange,
+                target: progress
+            )
+        )
+        let duration = ProcessInfo.processInfo.systemUptime - startedAt
+        return SubtitleRecognitionCandidate(
+            provider: .qwen,
+            result: result.withRecognitionDuration(duration)
+        )
+    }
+
+    private func recognitionFailure(
+        for provider: SubtitleRecognitionProvider,
+        error: Error
+    ) throws -> SubtitleRecognitionFailure {
+        if error is CancellationError {
+            throw CancellationError()
+        }
+        return SubtitleRecognitionFailure(
+            provider: provider,
+            message: error.localizedDescription
         )
     }
 

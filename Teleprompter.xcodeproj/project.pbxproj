@@ -164,6 +164,7 @@
 		D5A100000000000000000003 = {isa = "PBXBuildFile"; fileRef = "C5A100000000000000000003"; };
 		D5A100000000000000000004 = {isa = "PBXBuildFile"; fileRef = "C5A100000000000000000004"; };
 		D5A100000000000000000005 = {isa = "PBXBuildFile"; productRef = "F5A100000000000000000002"; };
+		D5A100000000000000000006 = {isa = "PBXBuildFile"; fileRef = "C5A100000000000000000005"; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -424,6 +425,7 @@
 		C5A100000000000000000002 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/SenseVoiceModelManager.swift"; sourceTree = "<group>"; };
 		C5A100000000000000000003 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/SenseVoiceSubtitleTranscriber.swift"; sourceTree = "<group>"; };
 		C5A100000000000000000004 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/SubtitleTranscriptionCoordinator.swift"; sourceTree = "<group>"; };
+		C5A100000000000000000005 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/QwenASRSubtitleTranscriber.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -579,6 +581,7 @@
 				"C5A100000000000000000002",
 				"C5A100000000000000000003",
 				"C5A100000000000000000004",
+				"C5A100000000000000000005",
             );
             isa = "PBXGroup";
             name = "Subtitle";
@@ -748,6 +751,7 @@
 				"D5A100000000000000000002",
 				"D5A100000000000000000003",
 				"D5A100000000000000000004",
+				"D5A100000000000000000006",
             );
             isa = "PBXSourcesBuildPhase";
             runOnlyForDeploymentPostprocessing = 0;

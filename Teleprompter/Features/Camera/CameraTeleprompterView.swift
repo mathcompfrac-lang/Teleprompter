@@ -9,16 +9,36 @@ private func subtitleTranscriptionStatusText(
     if progress < 0.1 {
         return "正在提取视频音轨…"
     }
-    if mode == .comparison {
-        if progress < 0.55 {
-            return "正在运行 Apple（1/2）…"
+    switch mode {
+    case .comparison:
+        if #available(iOS 26.0, *) {
+            if progress < 0.4 {
+                return "正在运行 Apple（1/3）…"
+            }
+            if progress < 0.7 {
+                return "正在运行 SenseVoice（2/3）…"
+            }
+            return "正在运行 Qwen（3/3）…"
         }
-        return "正在运行 SenseVoice（2/2）…"
+        if progress < 0.55 {
+            return "正在运行 SenseVoice（1/2）…"
+        }
+        return "正在运行 Qwen（2/2）…"
+    case .qwen:
+        if progress < 0.55 {
+            return "正在上传音频到 Qwen…"
+        }
+        return "正在等待 Qwen 转写…"
+    case .senseVoice:
+        if progress < 0.2 {
+            return "正在准备本地语音模型…"
+        }
+        return "正在运行 SenseVoice…"
+    case .apple:
+        return "正在运行 Apple 本地识别…"
+    case nil:
+        return "正在识别字幕…"
     }
-    if progress < 0.2 {
-        return "正在准备本地语音模型…"
-    }
-    return "正在本地识别字幕…"
 }
 
 private func foregroundAudioStatusText(
@@ -1383,6 +1403,7 @@ private struct RecordedVideoPreviewView: View {
                 SubtitleReviewView(
                     initialCues: clip.subtitleCues,
                     candidates: clip.subtitleRecognitionCandidates,
+                    failures: clip.subtitleRecognitionFailures,
                     selectedProvider: clip.selectedSubtitleProvider,
                     onSelect: { provider, cues in
                         camera.selectSubtitleCandidate(
@@ -1905,22 +1926,38 @@ private struct SubtitleRecognitionSettingsView: View {
     @Binding var language: SubtitleRecognitionLanguage
     @Binding var referenceText: String
     @StateObject private var modelManager = SenseVoiceModelManager.shared
+    @StateObject private var qwenKeyStore = QwenAPIKeyStore.shared
     @State private var showDeleteConfirmation = false
+    @State private var qwenAPIKeyDraft = ""
+    @State private var qwenKeyError: String?
     let onStart: () -> Void
 
     private var availableModes: [SubtitleRecognitionMode] {
         if #available(iOS 26.0, *) {
             return SubtitleRecognitionMode.allCases
         }
-        return [.senseVoice]
+        return [.senseVoice, .qwen, .comparison]
     }
 
     private var canStart: Bool {
         guard availableModes.contains(mode) else { return false }
         if mode.requiresSenseVoiceModel {
-            return modelManager.state == .ready
+            guard modelManager.state == .ready else { return false }
+        }
+        if mode.requiresQwenAPI {
+            guard qwenKeyStore.hasAPIKey else { return false }
         }
         return true
+    }
+
+    private var qwenAPIKeyPlaceholder: LocalizedStringKey {
+        qwenKeyStore.hasAPIKey
+            ? "粘贴新的 DashScope API Key"
+            : "粘贴 DashScope API Key"
+    }
+
+    private var qwenAPIKeyButtonTitle: LocalizedStringKey {
+        qwenKeyStore.hasAPIKey ? "更新 API Key" : "保存 API Key"
     }
 
     var body: some View {
@@ -1936,16 +1973,16 @@ private struct SubtitleRecognitionSettingsView: View {
                     .pickerStyle(.menu)
 
                     if mode == .comparison {
-                        Text("同一视频依次运行 Apple 和 SenseVoice。")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Text("A/B 对比时不使用参考文稿，以免影响公平性。")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    if #unavailable(iOS 26.0) {
-                        Text("A/B 对比需要 iOS 26 或更高版本。")
+                        if #available(iOS 26.0, *) {
+                            Text("同一视频依次运行 Apple、SenseVoice 和 Qwen。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("同一视频依次运行 SenseVoice 和 Qwen；Apple 识别需要 iOS 26。")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text("多引擎对比时不使用参考文稿，以免影响公平性。")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -2000,10 +2037,64 @@ private struct SubtitleRecognitionSettingsView: View {
                     }
                 }
 
+                if mode.requiresQwenAPI {
+                    Section("Qwen API") {
+                        if qwenKeyStore.hasAPIKey {
+                            Label("API Key 已安全保存", systemImage: "checkmark.shield.fill")
+                                .foregroundStyle(.green)
+                        }
+
+                        SecureField(qwenAPIKeyPlaceholder, text: $qwenAPIKeyDraft)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+
+                        Button(qwenAPIKeyButtonTitle) {
+                            do {
+                                try qwenKeyStore.save(qwenAPIKeyDraft)
+                                qwenAPIKeyDraft = ""
+                                qwenKeyError = nil
+                            } catch {
+                                qwenKeyError = error.localizedDescription
+                            }
+                        }
+                        .disabled(qwenAPIKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                        if qwenKeyStore.hasAPIKey {
+                            Button("删除 API Key", role: .destructive) {
+                                qwenKeyStore.delete()
+                                qwenAPIKeyDraft = ""
+                                qwenKeyError = nil
+                            }
+                        }
+
+                        if let qwenKeyError {
+                            Text(qwenKeyError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+
+                        Text("API Key 仅保存在本机 Keychain，不会写入 IPA 或上传到仓库。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 Section {
-                    Label("本地处理，音视频不会上传。", systemImage: "lock.shield")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    if mode.uploadsAudioToCloud {
+                        Label("音频会上传到阿里云 Qwen 进行识别。", systemImage: "icloud.and.arrow.up")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Text("需要联网，并可能产生 Qwen API 调用费用。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Text("上传到临时存储的音频最长保留 48 小时，之后由服务商自动清理。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Label("本地处理，音视频不会上传。", systemImage: "lock.shield")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .navigationTitle("字幕识别设置")
@@ -2034,6 +2125,9 @@ private struct SubtitleRecognitionSettingsView: View {
             if newMode != .apple {
                 language = .chinese
             }
+        }
+        .onDisappear {
+            qwenAPIKeyDraft = ""
         }
         .alert("删除 SenseVoice 模型？", isPresented: $showDeleteConfirmation) {
             Button("取消", role: .cancel) {}
@@ -2101,6 +2195,7 @@ private struct SubtitleReviewView: View {
     @State private var cuesByProvider: [SubtitleRecognitionProvider: [SubtitleCue]]
     @State private var selectedProvider: SubtitleRecognitionProvider
     let candidates: [SubtitleRecognitionCandidate]
+    let failures: [SubtitleRecognitionFailure]
     let onSelect: (SubtitleRecognitionProvider, [SubtitleCue]) -> Void
     let onSeek: (SubtitleRecognitionProvider, [SubtitleCue], Double) -> Void
     let onSave: (SubtitleRecognitionProvider, [SubtitleCue]) -> Void
@@ -2109,6 +2204,7 @@ private struct SubtitleReviewView: View {
     init(
         initialCues: [SubtitleCue],
         candidates: [SubtitleRecognitionCandidate],
+        failures: [SubtitleRecognitionFailure],
         selectedProvider: SubtitleRecognitionProvider?,
         onSelect: @escaping (SubtitleRecognitionProvider, [SubtitleCue]) -> Void,
         onSeek: @escaping (SubtitleRecognitionProvider, [SubtitleCue], Double) -> Void,
@@ -2123,6 +2219,7 @@ private struct SubtitleReviewView: View {
         _cuesByProvider = State(initialValue: initialCuesByProvider)
         _selectedProvider = State(initialValue: initialProvider)
         self.candidates = candidates
+        self.failures = failures
         self.onSelect = onSelect
         self.onSeek = onSeek
         self.onSave = onSave
@@ -2154,14 +2251,14 @@ private struct SubtitleReviewView: View {
         NavigationStack {
             List {
                 if candidates.count > 1 {
-                    Section("A/B 对比结果") {
-                        Picker("A/B 对比结果", selection: $selectedProvider) {
-                            ForEach(candidates) { candidate in
-                                Text(candidate.provider.localizedName)
-                                    .tag(candidate.provider)
-                            }
+                    Section("识别对比结果") {
+                        if candidates.count > 2 {
+                            comparisonPicker
+                                .pickerStyle(.menu)
+                        } else {
+                            comparisonPicker
+                                .pickerStyle(.segmented)
                         }
-                        .pickerStyle(.segmented)
 
                         Button("使用此结果") {
                             onSelect(selectedProvider, validCues)
@@ -2171,6 +2268,20 @@ private struct SubtitleReviewView: View {
                         Text("请试听并选择更准确的识别结果。")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
+                    }
+                }
+
+                if !failures.isEmpty {
+                    Section("未完成的识别引擎") {
+                        ForEach(failures) { failure in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(failure.provider.localizedName)
+                                    .font(.subheadline.weight(.semibold))
+                                Text(failure.message)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
 
@@ -2283,6 +2394,15 @@ private struct SubtitleReviewView: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    private var comparisonPicker: some View {
+        Picker("识别对比结果", selection: $selectedProvider) {
+            ForEach(candidates) { candidate in
+                Text(candidate.provider.localizedName)
+                    .tag(candidate.provider)
+            }
+        }
     }
 
     private func formatTime(_ seconds: Double) -> String {
