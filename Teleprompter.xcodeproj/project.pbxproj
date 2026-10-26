@@ -155,6 +155,15 @@
             fileRef = "8B2D7F3A5C9E1B4D6F8A0C2E";
             isa = "PBXBuildFile";
         };
+		A72E4C1D9B3F506182C4E6A8 = {
+            fileRef = "B83F5D2EAC40617293D5F7B9";
+            isa = "PBXBuildFile";
+        };
+		D5A100000000000000000001 = {isa = "PBXBuildFile"; fileRef = "C5A100000000000000000001"; };
+		D5A100000000000000000002 = {isa = "PBXBuildFile"; fileRef = "C5A100000000000000000002"; };
+		D5A100000000000000000003 = {isa = "PBXBuildFile"; fileRef = "C5A100000000000000000003"; };
+		D5A100000000000000000004 = {isa = "PBXBuildFile"; fileRef = "C5A100000000000000000004"; };
+		D5A100000000000000000005 = {isa = "PBXBuildFile"; productRef = "F5A100000000000000000002"; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -399,19 +408,29 @@
             path = "Features/Subtitle/HardSubtitleRenderer.swift";
             sourceTree = "<group>";
         };
+		B83F5D2EAC40617293D5F7B9 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Subtitle/ChineseSubtitlePostProcessor.swift";
+            sourceTree = "<group>";
+        };
 		8B2D7F3A5C9E1B4D6F8A0C2E = {
             isa = "PBXFileReference";
             lastKnownFileType = "text.json.xcstrings";
             path = "Localizable.xcstrings";
             sourceTree = "<group>";
         };
+		C5A100000000000000000001 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/SubtitleAudioExtractor.swift"; sourceTree = "<group>"; };
+		C5A100000000000000000002 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/SenseVoiceModelManager.swift"; sourceTree = "<group>"; };
+		C5A100000000000000000003 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/SenseVoiceSubtitleTranscriber.swift"; sourceTree = "<group>"; };
+		C5A100000000000000000004 = {isa = "PBXFileReference"; lastKnownFileType = "sourcecode.swift"; path = "Features/Subtitle/SubtitleTranscriptionCoordinator.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C90111A9C45D41EB8FE5ED8E = {
             buildActionMask = "2147483647";
             files = (
-
+				"D5A100000000000000000005",
             );
             isa = "PBXFrameworksBuildPhase";
             runOnlyForDeploymentPostprocessing = 0;
@@ -554,7 +573,12 @@
             children = (
                 "8B2D7F3A5C9E1B4D6F8A0C2B",
                 "8B2D7F3A5C9E1B4D6F8A0C2C",
+                "B83F5D2EAC40617293D5F7B9",
                 "8B2D7F3A5C9E1B4D6F8A0C2D",
+				"C5A100000000000000000001",
+				"C5A100000000000000000002",
+				"C5A100000000000000000003",
+				"C5A100000000000000000004",
             );
             isa = "PBXGroup";
             name = "Subtitle";
@@ -628,6 +652,9 @@
             );
             isa = "PBXNativeTarget";
             name = "Teleprompter";
+			packageProductDependencies = (
+				"F5A100000000000000000002",
+			);
             productName = "Teleprompter";
             productReference = "329127C7072E4680A85FA7A3";
             productType = "com.apple.product-type.application";
@@ -653,6 +680,9 @@
                 "Base",
             );
             mainGroup = "5A0F01A378D54DB78460E633";
+			packageReferences = (
+				"F5A100000000000000000001",
+			);
             productRefGroup = "01DBEBA52FC6457CB8E6193A";
             projectDirPath = "";
             projectRoot = "";
@@ -712,7 +742,12 @@
                 "5FA4E2F3504A4FF684A095E8",
                 "9A1C7E2F4B6D8A0C1E3F5A7B",
                 "9A1C7E2F4B6D8A0C1E3F5A7C",
+                "A72E4C1D9B3F506182C4E6A8",
                 "9A1C7E2F4B6D8A0C1E3F5A7D",
+				"D5A100000000000000000001",
+				"D5A100000000000000000002",
+				"D5A100000000000000000003",
+				"D5A100000000000000000004",
             );
             isa = "PBXSourcesBuildPhase";
             runOnlyForDeploymentPostprocessing = 0;
@@ -840,6 +875,25 @@
             isa = "XCConfigurationList";
         };
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F5A100000000000000000001 = {
+			isa = "XCRemoteSwiftPackageReference";
+			repositoryURL = "https://github.com/k2-fsa/sherpa-onnx.git";
+			requirement = {
+				kind = "exactVersion";
+				version = "2.0.0";
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F5A100000000000000000002 = {
+			isa = "XCSwiftPackageProductDependency";
+			package = "F5A100000000000000000001";
+			productName = "sherpa-onnx";
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EFA33C3CCE374954A8BB65C1;
 }

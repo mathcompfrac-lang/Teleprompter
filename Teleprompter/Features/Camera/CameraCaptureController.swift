@@ -131,10 +131,13 @@ final class CameraCaptureController: NSObject, ObservableObject {
         let source: Source
         let fileURL: URL
         let thumbnail: UIImage?
+        var subtitleRecognitionMode: SubtitleRecognitionMode = .comparison
         var subtitleRecognitionLanguage: SubtitleRecognitionLanguage = .chinese
         var subtitleReferenceText: String = ""
         var subtitleCues: [SubtitleCue] = []
         var subtitleRecognitionMetadata: SubtitleRecognitionMetadata?
+        var subtitleRecognitionCandidates: [SubtitleRecognitionCandidate] = []
+        var selectedSubtitleProvider: SubtitleRecognitionProvider?
         var subtitleGenerationState: SubtitleGenerationState = .notStarted
         var subtitledAssetIdentifier: String?
         var subtitledFileURL: URL?
@@ -972,8 +975,33 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
     }
 
+    func selectSubtitleCandidate(
+        for clip: RecordedClip,
+        provider: SubtitleRecognitionProvider,
+        cues: [SubtitleCue]
+    ) {
+        guard !isProcessingVideo,
+              let currentClip = savedClips.first(where: { $0.id == clip.id }),
+              currentClip.subtitleGenerationState != .completed,
+              let candidate = currentClip.subtitleRecognitionCandidates.first(
+                where: { $0.provider == provider }
+              ) else { return }
+        let validCues = cues.filter(\.isValid).sorted {
+            CMTimeCompare($0.startTime, $1.startTime) < 0
+        }
+        updateSavedClip(identifier: currentClip.id) {
+            $0.selectedSubtitleProvider = provider
+            $0.subtitleRecognitionMetadata = candidate.result.metadata
+            $0.subtitleCues = validCues
+            if !validCues.isEmpty {
+                $0.subtitleGenerationState = .reviewing
+            }
+        }
+    }
+
     func recognizeSubtitles(
         for clip: RecordedClip,
+        mode: SubtitleRecognitionMode,
         language: SubtitleRecognitionLanguage,
         referenceText: String
     ) {
@@ -1008,10 +1036,13 @@ final class CameraCaptureController: NSObject, ObservableObject {
         saveConfirmation = nil
         subtitleProcessingClipIdentifier = currentClip.id
         updateSavedClip(identifier: currentClip.id) {
+            $0.subtitleRecognitionMode = mode
             $0.subtitleRecognitionLanguage = language
-            $0.subtitleReferenceText = referenceText
+            $0.subtitleReferenceText = mode == .comparison ? "" : referenceText
             $0.subtitleCues = []
             $0.subtitleRecognitionMetadata = nil
+            $0.subtitleRecognitionCandidates = []
+            $0.selectedSubtitleProvider = nil
             $0.subtitleGenerationState = .transcribing(progress: 0)
         }
 
@@ -1020,8 +1051,9 @@ final class CameraCaptureController: NSObject, ObservableObject {
             await self.performSubtitleRecognition(
                 clipIdentifier: currentClip.id,
                 sourceURL: sourceURL,
+                mode: mode,
                 language: language,
-                referenceText: referenceText
+                referenceText: mode == .comparison ? "" : referenceText
             )
         }
     }
@@ -1095,6 +1127,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     private func performSubtitleRecognition(
         clipIdentifier: String,
         sourceURL: URL,
+        mode: SubtitleRecognitionMode,
         language: SubtitleRecognitionLanguage,
         referenceText: String
     ) async {
@@ -1106,8 +1139,9 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
 
         do {
-            let result = try await LocalSubtitleTranscriber.shared.transcribeVideo(
+            let result = try await SubtitleTranscriptionCoordinator.shared.transcribeVideo(
                 at: sourceURL,
+                mode: mode,
                 language: language,
                 referenceText: referenceText
             ) { [weak self] progress in
@@ -1127,15 +1161,22 @@ final class CameraCaptureController: NSObject, ObservableObject {
             guard savedClips.contains(where: { $0.id == clipIdentifier }) else {
                 throw CancellationError()
             }
+            guard let selectedCandidate = result.selectedCandidate else {
+                throw LocalSubtitleTranscriptionError.emptyTranscript
+            }
             updateSavedClip(identifier: clipIdentifier) {
-                $0.subtitleCues = result.cues
-                $0.subtitleRecognitionMetadata = result.metadata
+                $0.subtitleRecognitionCandidates = result.candidates
+                $0.selectedSubtitleProvider = selectedCandidate.provider
+                $0.subtitleCues = selectedCandidate.result.cues
+                $0.subtitleRecognitionMetadata = selectedCandidate.result.metadata
                 $0.subtitleGenerationState = .reviewing
             }
         } catch is CancellationError {
             updateSavedClip(identifier: clipIdentifier) {
                 $0.subtitleCues = []
                 $0.subtitleRecognitionMetadata = nil
+                $0.subtitleRecognitionCandidates = []
+                $0.selectedSubtitleProvider = nil
                 $0.subtitleGenerationState = .notStarted
             }
         } catch {

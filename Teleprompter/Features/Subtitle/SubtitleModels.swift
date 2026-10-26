@@ -36,25 +36,110 @@ enum SubtitleRecognitionEngine: String, Equatable, Sendable {
     case dictationTranscriber = "DictationTranscriber"
 }
 
+enum SubtitleRecognitionProvider: String, CaseIterable, Codable, Equatable, Hashable, Identifiable, Sendable {
+    case apple
+    case senseVoice
+
+    var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .apple:
+            return String(localized: "Apple 本地识别")
+        case .senseVoice:
+            return String(localized: "SenseVoice 中文增强")
+        }
+    }
+}
+
+enum SubtitleRecognitionMode: String, CaseIterable, Codable, Equatable, Hashable, Identifiable, Sendable {
+    case apple
+    case senseVoice
+    case comparison
+
+    var id: String { rawValue }
+
+    var localizedName: String {
+        switch self {
+        case .apple:
+            return String(localized: "Apple 本地识别")
+        case .senseVoice:
+            return String(localized: "SenseVoice 中文增强")
+        case .comparison:
+            return String(localized: "A/B 对比")
+        }
+    }
+
+    var requiresSenseVoiceModel: Bool {
+        self != .apple
+    }
+
+    var requiresIOS26: Bool {
+        self != .senseVoice
+    }
+}
+
 struct SubtitleRecognitionRoute: Equatable, Sendable {
     let engine: SubtitleRecognitionEngine
     let localeIdentifier: String
 }
 
 struct SubtitleRecognitionMetadata: Equatable, Sendable {
+    let provider: SubtitleRecognitionProvider
     let routes: [SubtitleRecognitionRoute]
     let referenceGuidedSelections: Int
+    let modelIdentifier: String?
+    let recognitionDuration: TimeInterval?
+
+    init(
+        provider: SubtitleRecognitionProvider = .apple,
+        routes: [SubtitleRecognitionRoute] = [],
+        referenceGuidedSelections: Int = 0,
+        modelIdentifier: String? = nil,
+        recognitionDuration: TimeInterval? = nil
+    ) {
+        self.provider = provider
+        self.routes = routes
+        self.referenceGuidedSelections = referenceGuidedSelections
+        self.modelIdentifier = modelIdentifier
+        self.recognitionDuration = recognitionDuration
+    }
 
     var summary: String {
-        routes
-            .map { "\($0.engine.rawValue) · \($0.localeIdentifier)" }
-            .joined(separator: " / ")
+        switch provider {
+        case .apple:
+            return routes
+                .map { "\($0.engine.rawValue) · \($0.localeIdentifier)" }
+                .joined(separator: " / ")
+        case .senseVoice:
+            return modelIdentifier.map { "SenseVoice · \($0)" } ?? "SenseVoice"
+        }
     }
 }
 
 struct SubtitleTranscriptionResult: Equatable, Sendable {
     let cues: [SubtitleCue]
     let metadata: SubtitleRecognitionMetadata
+}
+
+struct SubtitleRecognitionCandidate: Identifiable, Equatable, Sendable {
+    let provider: SubtitleRecognitionProvider
+    let result: SubtitleTranscriptionResult
+
+    var id: SubtitleRecognitionProvider { provider }
+
+    var recognitionDuration: TimeInterval? {
+        result.metadata.recognitionDuration
+    }
+}
+
+struct SubtitleTranscriptionBatchResult: Equatable, Sendable {
+    let candidates: [SubtitleRecognitionCandidate]
+    let selectedProvider: SubtitleRecognitionProvider
+
+    var selectedCandidate: SubtitleRecognitionCandidate? {
+        candidates.first(where: { $0.provider == selectedProvider }) ?? candidates.first
+    }
 }
 
 /// 一条与源视频时间轴对齐的字幕。
@@ -185,6 +270,8 @@ enum LocalSubtitleTranscriptionError: Error, Equatable, Sendable {
     case noAudioTrack
     case audioExtractionFailed(String)
     case modelInstallationFailed(String)
+    case senseVoiceModelNotInstalled
+    case senseVoiceModelInvalid
     case audioLoadFailed(String)
     case emptyAudio
     case emptyTranscript
@@ -208,6 +295,10 @@ extension LocalSubtitleTranscriptionError: LocalizedError {
             return "提取视频音轨失败：\(reason)"
         case .modelInstallationFailed(let reason):
             return "准备本地语音模型失败：\(reason)"
+        case .senseVoiceModelNotInstalled:
+            return String(localized: "请先下载 SenseVoice 模型。")
+        case .senseVoiceModelInvalid:
+            return String(localized: "SenseVoice 模型校验失败，请重新下载。")
         case .audioLoadFailed(let reason):
             return "读取视频音轨失败：\(reason)"
         case .emptyAudio:

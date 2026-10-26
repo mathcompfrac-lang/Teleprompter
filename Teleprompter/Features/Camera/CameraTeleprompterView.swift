@@ -2,12 +2,21 @@ import AVKit
 import SwiftUI
 import UIKit
 
-private func subtitleTranscriptionStatusText(for progress: Double) -> LocalizedStringKey {
-    if progress < 0.15 {
-        return "正在准备本地语音模型…"
+private func subtitleTranscriptionStatusText(
+    for progress: Double,
+    mode: SubtitleRecognitionMode? = nil
+) -> LocalizedStringKey {
+    if progress < 0.1 {
+        return "正在提取视频音轨…"
+    }
+    if mode == .comparison {
+        if progress < 0.55 {
+            return "正在运行 Apple（1/2）…"
+        }
+        return "正在运行 SenseVoice（2/2）…"
     }
     if progress < 0.2 {
-        return "正在提取视频音轨…"
+        return "正在准备本地语音模型…"
     }
     return "正在本地识别字幕…"
 }
@@ -783,7 +792,10 @@ struct CameraTeleprompterView: View {
                     .tint(.white)
                     .frame(width: 190)
 
-                Text(subtitleStatusText(for: clip.subtitleGenerationState))
+                Text(subtitleStatusText(
+                    for: clip.subtitleGenerationState,
+                    mode: clip.subtitleRecognitionMode
+                ))
                     .font(.headline)
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
@@ -842,13 +854,14 @@ struct CameraTeleprompterView: View {
     }
 
     private func subtitleStatusText(
-        for state: CameraCaptureController.SubtitleGenerationState
+        for state: CameraCaptureController.SubtitleGenerationState,
+        mode: SubtitleRecognitionMode? = nil
     ) -> LocalizedStringKey {
         switch state {
         case .notStarted:
             return "等待生成字幕"
         case .transcribing(let progress):
-            return subtitleTranscriptionStatusText(for: progress)
+            return subtitleTranscriptionStatusText(for: progress, mode: mode)
         case .reviewing:
             return "等待校对字幕"
         case .rendering:
@@ -1190,6 +1203,7 @@ private struct RecordedVideoPreviewView: View {
     @StateObject private var playback: RecordedVideoPlaybackController
     @State private var isSubtitleSavedToastVisible = false
     @State private var isForegroundAudioSavedToastVisible = false
+    @State private var recognitionMode: SubtitleRecognitionMode
     @State private var recognitionLanguage: SubtitleRecognitionLanguage
     @State private var referenceText: String
     @State private var showRecognitionSettings = false
@@ -1206,6 +1220,7 @@ private struct RecordedVideoPreviewView: View {
         _playback = StateObject(
             wrappedValue: RecordedVideoPlaybackController(url: clip.previewURL)
         )
+        _recognitionMode = State(initialValue: clip.subtitleRecognitionMode)
         _recognitionLanguage = State(initialValue: clip.subtitleRecognitionLanguage)
         _referenceText = State(initialValue: clip.subtitleReferenceText)
     }
@@ -1348,12 +1363,14 @@ private struct RecordedVideoPreviewView: View {
         }
         .sheet(isPresented: $showRecognitionSettings) {
             SubtitleRecognitionSettingsView(
+                mode: $recognitionMode,
                 language: $recognitionLanguage,
                 referenceText: $referenceText,
                 onStart: {
                     guard let clip else { return }
                     camera.recognizeSubtitles(
                         for: clip,
+                        mode: recognitionMode,
                         language: recognitionLanguage,
                         referenceText: referenceText
                     )
@@ -1365,16 +1382,36 @@ private struct RecordedVideoPreviewView: View {
             if let clip {
                 SubtitleReviewView(
                     initialCues: clip.subtitleCues,
-                    metadata: clip.subtitleRecognitionMetadata,
-                    onSeek: { cues, seconds in
-                        camera.updateSubtitleCues(for: clip, cues: cues)
+                    candidates: clip.subtitleRecognitionCandidates,
+                    selectedProvider: clip.selectedSubtitleProvider,
+                    onSelect: { provider, cues in
+                        camera.selectSubtitleCandidate(
+                            for: clip,
+                            provider: provider,
+                            cues: cues
+                        )
+                    },
+                    onSeek: { provider, cues, seconds in
+                        camera.selectSubtitleCandidate(
+                            for: clip,
+                            provider: provider,
+                            cues: cues
+                        )
                         playback.seek(to: seconds, resumePlayback: false)
                     },
-                    onSave: { cues in
-                        camera.updateSubtitleCues(for: clip, cues: cues)
+                    onSave: { provider, cues in
+                        camera.selectSubtitleCandidate(
+                            for: clip,
+                            provider: provider,
+                            cues: cues
+                        )
                     },
-                    onGenerate: { cues in
-                        camera.updateSubtitleCues(for: clip, cues: cues)
+                    onGenerate: { provider, cues in
+                        camera.selectSubtitleCandidate(
+                            for: clip,
+                            provider: provider,
+                            cues: cues
+                        )
                         if let updatedClip = camera.savedClips.first(where: { $0.id == clip.id }) {
                             camera.renderReviewedSubtitles(for: updatedClip)
                         }
@@ -1609,42 +1646,28 @@ private struct RecordedVideoPreviewView: View {
         if let clip {
             switch clip.subtitleGenerationState {
             case .notStarted:
-                if #available(iOS 26.0, *) {
-                    VStack(spacing: 6) {
-                        if needsForegroundAudioFirst(clip) {
-                            Text("请先生成纯人声版，再识别字幕")
-                                .font(.caption)
-                                .foregroundStyle(.white.opacity(0.78))
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity)
-                        }
+                VStack(spacing: 6) {
+                    if needsForegroundAudioFirst(clip) {
+                        Text("请先生成纯人声版，再识别字幕")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.78))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                    }
 
-                        Button {
-                            recognitionLanguage = clip.subtitleRecognitionLanguage
-                            referenceText = clip.subtitleReferenceText
-                            showRecognitionSettings = true
-                        } label: {
-                            Label("识别字幕", systemImage: "captions.bubble")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity, minHeight: 46)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.blue)
-                        .disabled(camera.isProcessingVideo || needsForegroundAudioFirst(clip))
+                    Button {
+                        recognitionMode = clip.subtitleRecognitionMode
+                        recognitionLanguage = clip.subtitleRecognitionLanguage
+                        referenceText = clip.subtitleReferenceText
+                        showRecognitionSettings = true
+                    } label: {
+                        Label("识别字幕", systemImage: "captions.bubble")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, minHeight: 46)
                     }
-                } else {
-                    Label(
-                        "本地硬字幕需要 iOS 26 或更高版本",
-                        systemImage: "exclamationmark.triangle.fill"
-                    )
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(.black.opacity(0.84), in: RoundedRectangle(cornerRadius: 12))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(.orange.opacity(0.9), lineWidth: 1)
-                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .disabled(camera.isProcessingVideo || needsForegroundAudioFirst(clip))
                 }
 
             case .reviewing:
@@ -1671,7 +1694,10 @@ private struct RecordedVideoPreviewView: View {
 
             case .transcribing(let progress):
                 subtitleProgressPanel(
-                    title: subtitleTranscriptionStatusText(for: progress),
+                    title: subtitleTranscriptionStatusText(
+                        for: progress,
+                        mode: clip.subtitleRecognitionMode
+                    ),
                     progress: clip.subtitleGenerationState.overallProgress,
                     allowsCancellation: true,
                     clip: clip
@@ -1721,6 +1747,7 @@ private struct RecordedVideoPreviewView: View {
 
                     if clip.subtitleCues.isEmpty {
                         Button {
+                            recognitionMode = clip.subtitleRecognitionMode
                             recognitionLanguage = clip.subtitleRecognitionLanguage
                             referenceText = clip.subtitleReferenceText
                             showRecognitionSettings = true
@@ -1870,19 +1897,67 @@ private struct RecordedVideoPreviewView: View {
     }
 }
 
+@MainActor
 private struct SubtitleRecognitionSettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
+    @Binding var mode: SubtitleRecognitionMode
     @Binding var language: SubtitleRecognitionLanguage
     @Binding var referenceText: String
+    @StateObject private var modelManager = SenseVoiceModelManager.shared
+    @State private var showDeleteConfirmation = false
     let onStart: () -> Void
+
+    private var availableModes: [SubtitleRecognitionMode] {
+        if #available(iOS 26.0, *) {
+            return SubtitleRecognitionMode.allCases
+        }
+        return [.senseVoice]
+    }
+
+    private var canStart: Bool {
+        guard availableModes.contains(mode) else { return false }
+        if mode.requiresSenseVoiceModel {
+            return modelManager.state == .ready
+        }
+        return true
+    }
 
     var body: some View {
         NavigationStack {
             Form {
+                Section("识别引擎") {
+                    Picker("识别引擎", selection: $mode) {
+                        ForEach(availableModes) { mode in
+                            Text(mode.localizedName)
+                                .tag(mode)
+                        }
+                    }
+                    .pickerStyle(.menu)
+
+                    if mode == .comparison {
+                        Text("同一视频依次运行 Apple 和 SenseVoice。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Text("A/B 对比时不使用参考文稿，以免影响公平性。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if #unavailable(iOS 26.0) {
+                        Text("A/B 对比需要 iOS 26 或更高版本。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 Section {
                     Picker("识别语言", selection: $language) {
-                        ForEach(SubtitleRecognitionLanguage.allCases) { language in
+                        ForEach(
+                            mode == .apple
+                                ? SubtitleRecognitionLanguage.allCases
+                                : [.chinese]
+                        ) { language in
                             Text(language.localizedName)
                                 .tag(language)
                         }
@@ -1890,22 +1965,39 @@ private struct SubtitleRecognitionSettingsView: View {
                     .pickerStyle(.menu)
                 }
 
-                Section("参考文稿（可选）") {
-                    ZStack(alignment: .topLeading) {
-                        if referenceText.isEmpty {
-                            Text("输入提词稿或关键词")
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 8)
-                                .allowsHitTesting(false)
+                if mode == .apple {
+                    Section("参考文稿（可选）") {
+                        ZStack(alignment: .topLeading) {
+                            if referenceText.isEmpty {
+                                Text("输入提词稿或关键词")
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 8)
+                                    .allowsHitTesting(false)
+                            }
+                            TextEditor(text: $referenceText)
+                                .frame(minHeight: 150)
                         }
-                        TextEditor(text: $referenceText)
-                            .frame(minHeight: 150)
-                    }
 
-                    Text("参考文稿仅用于校正识别结果，不会替代视频中的语音。")
+                        Text("参考文稿仅用于校正识别结果，不会替代视频中的语音。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if mode.requiresSenseVoiceModel {
+                    Section("SenseVoice 模型") {
+                        senseVoiceModelControls
+
+                        Text("首次使用需要联网下载模型，下载后可完全离线识别。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Link(
+                            "模型许可与来源",
+                            destination: SenseVoiceModelManager.attributionURL
+                        )
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    }
                 }
 
                 Section {
@@ -1926,52 +2018,187 @@ private struct SubtitleRecognitionSettingsView: View {
                     Button("开始识别") {
                         onStart()
                     }
+                    .disabled(!canStart)
                 }
             }
         }
+        .onAppear {
+            if !availableModes.contains(mode) {
+                mode = .senseVoice
+            }
+            if mode != .apple {
+                language = .chinese
+            }
+        }
+        .onChange(of: mode) { _, newMode in
+            if newMode != .apple {
+                language = .chinese
+            }
+        }
+        .alert("删除 SenseVoice 模型？", isPresented: $showDeleteConfirmation) {
+            Button("取消", role: .cancel) {}
+            Button("删除", role: .destructive) {
+                try? modelManager.removeInstalledModel()
+            }
+        } message: {
+            Text("删除后再次使用需要重新下载。")
+        }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+
+    @ViewBuilder
+    private var senseVoiceModelControls: some View {
+        switch modelManager.state {
+        case .notInstalled:
+            Button("下载模型（约 240 MB）") {
+                modelManager.install()
+            }
+
+        case .downloading(let progress):
+            VStack(alignment: .leading, spacing: 8) {
+                ProgressView(value: progress)
+                Text("正在下载 SenseVoice 模型…")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Button("取消", role: .cancel) {
+                    modelManager.cancelInstallation()
+                }
+            }
+
+        case .verifying:
+            HStack(spacing: 10) {
+                ProgressView()
+                Text("正在校验 SenseVoice 模型…")
+            }
+
+        case .ready:
+            Label("SenseVoice 模型已下载", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+            Button("删除 SenseVoice 模型", role: .destructive) {
+                showDeleteConfirmation = true
+            }
+
+        case .failed(let message):
+            Text(
+                String.localizedStringWithFormat(
+                    String(localized: "SenseVoice 模型下载失败：%@"),
+                    message
+                )
+            )
+            .font(.footnote)
+            .foregroundStyle(.red)
+            Button("重试下载") {
+                modelManager.install()
+            }
+        }
     }
 }
 
 private struct SubtitleReviewView: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var cues: [SubtitleCue]
-    let metadata: SubtitleRecognitionMetadata?
-    let onSeek: ([SubtitleCue], Double) -> Void
-    let onSave: ([SubtitleCue]) -> Void
-    let onGenerate: ([SubtitleCue]) -> Void
+    @State private var cuesByProvider: [SubtitleRecognitionProvider: [SubtitleCue]]
+    @State private var selectedProvider: SubtitleRecognitionProvider
+    let candidates: [SubtitleRecognitionCandidate]
+    let onSelect: (SubtitleRecognitionProvider, [SubtitleCue]) -> Void
+    let onSeek: (SubtitleRecognitionProvider, [SubtitleCue], Double) -> Void
+    let onSave: (SubtitleRecognitionProvider, [SubtitleCue]) -> Void
+    let onGenerate: (SubtitleRecognitionProvider, [SubtitleCue]) -> Void
 
     init(
         initialCues: [SubtitleCue],
-        metadata: SubtitleRecognitionMetadata?,
-        onSeek: @escaping ([SubtitleCue], Double) -> Void,
-        onSave: @escaping ([SubtitleCue]) -> Void,
-        onGenerate: @escaping ([SubtitleCue]) -> Void
+        candidates: [SubtitleRecognitionCandidate],
+        selectedProvider: SubtitleRecognitionProvider?,
+        onSelect: @escaping (SubtitleRecognitionProvider, [SubtitleCue]) -> Void,
+        onSeek: @escaping (SubtitleRecognitionProvider, [SubtitleCue], Double) -> Void,
+        onSave: @escaping (SubtitleRecognitionProvider, [SubtitleCue]) -> Void,
+        onGenerate: @escaping (SubtitleRecognitionProvider, [SubtitleCue]) -> Void
     ) {
-        _cues = State(initialValue: initialCues)
-        self.metadata = metadata
+        let initialProvider = selectedProvider ?? candidates.first?.provider ?? .apple
+        var initialCuesByProvider = Dictionary(
+            uniqueKeysWithValues: candidates.map { ($0.provider, $0.result.cues) }
+        )
+        initialCuesByProvider[initialProvider] = initialCues
+        _cuesByProvider = State(initialValue: initialCuesByProvider)
+        _selectedProvider = State(initialValue: initialProvider)
+        self.candidates = candidates
+        self.onSelect = onSelect
         self.onSeek = onSeek
         self.onSave = onSave
         self.onGenerate = onGenerate
     }
 
+    private var selectedCues: [SubtitleCue] {
+        cuesByProvider[selectedProvider] ?? []
+    }
+
+    private var selectedCuesBinding: Binding<[SubtitleCue]> {
+        Binding(
+            get: { cuesByProvider[selectedProvider] ?? [] },
+            set: { cuesByProvider[selectedProvider] = $0 }
+        )
+    }
+
     private var validCues: [SubtitleCue] {
-        cues.filter(\.isValid).sorted {
+        selectedCues.filter(\.isValid).sorted {
             CMTimeCompare($0.startTime, $1.startTime) < 0
         }
+    }
+
+    private var selectedCandidate: SubtitleRecognitionCandidate? {
+        candidates.first(where: { $0.provider == selectedProvider })
     }
 
     var body: some View {
         NavigationStack {
             List {
-                if let metadata {
+                if candidates.count > 1 {
+                    Section("A/B 对比结果") {
+                        Picker("A/B 对比结果", selection: $selectedProvider) {
+                            ForEach(candidates) { candidate in
+                                Text(candidate.provider.localizedName)
+                                    .tag(candidate.provider)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+
+                        Button("使用此结果") {
+                            onSelect(selectedProvider, validCues)
+                        }
+                        .disabled(validCues.isEmpty)
+
+                        Text("请试听并选择更准确的识别结果。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if let candidate = selectedCandidate {
                     Section("识别方式") {
-                        Text(metadata.summary)
+                        Text(candidate.result.metadata.summary)
                             .font(.footnote.monospaced())
 
-                        if metadata.routes.contains(where: { $0.engine == .dictationTranscriber }) {
+                        if let duration = candidate.recognitionDuration {
+                            Text(
+                                String.localizedStringWithFormat(
+                                    String(localized: "识别耗时：%@"),
+                                    formatRecognitionDuration(duration)
+                                )
+                            )
+                            .font(.footnote)
+                        }
+                        Text(
+                            String.localizedStringWithFormat(
+                                String(localized: "字幕条数：%@"),
+                                String(validCues.count)
+                            )
+                        )
+                        .font(.footnote)
+
+                        if candidate.result.metadata.routes.contains(
+                            where: { $0.engine == .dictationTranscriber }
+                        ) {
                             Text("当前设备使用兼容识别引擎，准确率可能较低。")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
@@ -1980,10 +2207,14 @@ private struct SubtitleReviewView: View {
                 }
 
                 Section {
-                    ForEach($cues) { $cue in
+                    ForEach(selectedCuesBinding) { $cue in
                         VStack(alignment: .leading, spacing: 8) {
                             Button {
-                                onSeek(validCues, cue.startSeconds)
+                                onSeek(
+                                    selectedProvider,
+                                    validCues,
+                                    cue.startSeconds
+                                )
                                 dismiss()
                             } label: {
                                 Label(
@@ -2002,7 +2233,9 @@ private struct SubtitleReviewView: View {
                         .padding(.vertical, 4)
                     }
                     .onDelete { offsets in
+                        var cues = selectedCues
                         cues.remove(atOffsets: offsets)
+                        cuesByProvider[selectedProvider] = cues
                     }
                 } header: {
                     Text("校对字幕")
@@ -2025,7 +2258,7 @@ private struct SubtitleReviewView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存修改") {
-                        onSave(validCues)
+                        onSave(selectedProvider, validCues)
                         dismiss()
                     }
                     .disabled(validCues.isEmpty)
@@ -2034,7 +2267,7 @@ private struct SubtitleReviewView: View {
             .safeAreaInset(edge: .bottom) {
                 Button {
                     let reviewedCues = validCues
-                    onGenerate(reviewedCues)
+                    onGenerate(selectedProvider, reviewedCues)
                     dismiss()
                 } label: {
                     Label("生成硬字幕", systemImage: "captions.bubble.fill")
@@ -2057,6 +2290,17 @@ private struct SubtitleReviewView: View {
         let minutes = Int(seconds) / 60
         let remainingSeconds = seconds - Double(minutes * 60)
         return String(format: "%02d:%04.1f", minutes, remainingSeconds)
+    }
+
+    private func formatRecognitionDuration(_ seconds: TimeInterval) -> String {
+        let formatter = MeasurementFormatter()
+        formatter.locale = .current
+        formatter.unitOptions = .providedUnit
+        formatter.unitStyle = .short
+        formatter.numberFormatter.maximumFractionDigits = 1
+        return formatter.string(
+            from: Measurement(value: max(seconds, 0), unit: UnitDuration.seconds)
+        )
     }
 }
 

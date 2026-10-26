@@ -19,11 +19,6 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         }
     }
 
-    private struct ExtractedAudio {
-        let url: URL
-        let timelineOffset: CMTime
-    }
-
     private struct RecognizedCue: Sendable {
         var cue: SubtitleCue
         let confidence: Double?
@@ -139,7 +134,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
     private init() {}
 
     /// 从本地视频识别字幕。中英混合模式会顺序识别两遍，再按时间轴保守融合。
-    /// 参考文稿只用于选择系统已经返回的候选，不会直接补写到识别结果。
+    /// 中文模式会用参考文稿保守校正高置信度匹配区间，不改变系统时间轴。
     func transcribeVideo(
         at videoURL: URL,
         language: SubtitleRecognitionLanguage = .chinese,
@@ -160,8 +155,14 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
             throw LocalSubtitleTranscriptionError.requiresIOS26
         }
 
-        return try await transcribeWithSpeechAnalyzer(
-            videoURL: videoURL,
+        let extractedAudio = try await SubtitleAudioExtractor.shared.extractAudio(
+            from: videoURL
+        )
+        defer { try? FileManager.default.removeItem(at: extractedAudio.url) }
+
+        return try await transcribeAudio(
+            at: extractedAudio.url,
+            timelineOffset: extractedAudio.timelineOffset,
             language: language,
             referenceText: referenceText,
             progress: progress
@@ -169,20 +170,18 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
     }
 
     @available(iOS 26.0, *)
-    private func transcribeWithSpeechAnalyzer(
-        videoURL: URL,
+    func transcribeAudio(
+        at extractedAudioURL: URL,
+        timelineOffset: CMTime,
         language: SubtitleRecognitionLanguage,
         referenceText: String,
         progress: ProgressHandler?
     ) async throws -> SubtitleTranscriptionResult {
         try Task.checkCancellation()
         progress?(SubtitleTranscriptionProgress(
-            phase: .extractingAudio,
+            phase: .preparingModel,
             fractionCompleted: 0.05
         ))
-
-        let extractedAudio = try await extractAudio(from: videoURL)
-        defer { try? FileManager.default.removeItem(at: extractedAudio.url) }
 
         let localeIdentifiers = language.localeIdentifiers
         let passSpan = 0.85 / Double(max(localeIdentifiers.count, 1))
@@ -204,13 +203,20 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
                 progress: progress
             )
 
-            let passResult = try await recognize(
-                extractedAudioURL: extractedAudio.url,
+            var passResult = try await recognize(
+                extractedAudioURL: extractedAudioURL,
                 configuredTranscriber: configuredTranscriber,
                 referenceText: referenceText,
+                usesChineseAccuracyEnhancements: language == .chinese,
                 progressRange: preparationEnd...passEnd,
                 progress: progress
             )
+            if language == .chinese {
+                passResult = applyingChineseReferenceCorrection(
+                    to: passResult,
+                    referenceText: referenceText
+                )
+            }
             passResults.append(passResult)
         }
 
@@ -224,7 +230,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
             relativeCues = passResults.first?.cues.map(\.cue) ?? []
         }
 
-        let cues = offsetCues(relativeCues, by: extractedAudio.timelineOffset)
+        let cues = offsetCues(relativeCues, by: timelineOffset)
         guard !cues.isEmpty else {
             throw LocalSubtitleTranscriptionError.emptyTranscript
         }
@@ -236,6 +242,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         return SubtitleTranscriptionResult(
             cues: cues,
             metadata: SubtitleRecognitionMetadata(
+                provider: .apple,
                 routes: passResults.map(\.route),
                 referenceGuidedSelections: passResults.reduce(0) {
                     $0 + $1.referenceGuidedSelections
@@ -249,6 +256,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         extractedAudioURL: URL,
         configuredTranscriber: ConfiguredTranscriber,
         referenceText: String,
+        usesChineseAccuracyEnhancements: Bool,
         progressRange: ClosedRange<Double>,
         progress: ProgressHandler?
     ) async throws -> RecognitionPassResult {
@@ -282,6 +290,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
                     from: transcriber,
                     localeIdentifier: route.localeIdentifier,
                     referenceText: referenceText,
+                    usesChineseAccuracyEnhancements: usesChineseAccuracyEnhancements,
                     audioDuration: audioDuration,
                     progressRange: progressRange,
                     progress: progress
@@ -294,6 +303,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
                     from: transcriber,
                     localeIdentifier: route.localeIdentifier,
                     referenceText: referenceText,
+                    usesChineseAccuracyEnhancements: usesChineseAccuracyEnhancements,
                     audioDuration: audioDuration,
                     progressRange: progressRange,
                     progress: progress
@@ -457,6 +467,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         from transcriber: Speech.SpeechTranscriber,
         localeIdentifier: String,
         referenceText: String,
+        usesChineseAccuracyEnhancements: Bool,
         audioDuration: TimeInterval,
         progressRange: ClosedRange<Double>,
         progress: ProgressHandler?
@@ -470,6 +481,10 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
             let selection = selectCandidate(
                 primary: result.text,
                 alternatives: result.alternatives,
+                usesChineseAccuracyEnhancements: usesChineseAccuracyEnhancements,
+                hasReferenceText: !referenceText.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                ).isEmpty,
                 matcher: &matcher
             )
             if selection.wasReferenceGuided {
@@ -479,6 +494,8 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
                 from: selection,
                 localeIdentifier: localeIdentifier,
                 to: &cues,
+                fallbackTimeRange: result.range,
+                usesChineseAccuracyEnhancements: usesChineseAccuracyEnhancements,
                 audioDuration: audioDuration,
                 progressRange: progressRange,
                 progress: progress
@@ -493,6 +510,7 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         from transcriber: Speech.DictationTranscriber,
         localeIdentifier: String,
         referenceText: String,
+        usesChineseAccuracyEnhancements: Bool,
         audioDuration: TimeInterval,
         progressRange: ClosedRange<Double>,
         progress: ProgressHandler?
@@ -506,6 +524,10 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
             let selection = selectCandidate(
                 primary: result.text,
                 alternatives: result.alternatives,
+                usesChineseAccuracyEnhancements: usesChineseAccuracyEnhancements,
+                hasReferenceText: !referenceText.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                ).isEmpty,
                 matcher: &matcher
             )
             if selection.wasReferenceGuided {
@@ -515,6 +537,8 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
                 from: selection,
                 localeIdentifier: localeIdentifier,
                 to: &cues,
+                fallbackTimeRange: result.range,
+                usesChineseAccuracyEnhancements: usesChineseAccuracyEnhancements,
                 audioDuration: audioDuration,
                 progressRange: progressRange,
                 progress: progress
@@ -528,18 +552,21 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
     private func selectCandidate(
         primary: AttributedString,
         alternatives: [AttributedString],
+        usesChineseAccuracyEnhancements: Bool,
+        hasReferenceText: Bool,
         matcher: inout ReferenceMatcher
     ) -> CandidateSelection {
         var candidates: [AttributedString] = []
         var candidateTexts: [String] = []
 
+        let candidateLimit = usesChineseAccuracyEnhancements && hasReferenceText ? 8 : 3
         for candidate in [primary] + alternatives {
             let text = String(candidate.characters)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             guard !text.isEmpty, !candidateTexts.contains(text) else { continue }
             candidates.append(candidate)
             candidateTexts.append(text)
-            if candidates.count == 3 {
+            if candidates.count == candidateLimit {
                 break
             }
         }
@@ -554,6 +581,13 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         let topConfidence = meanTranscriptionConfidence(in: candidates[0])
         var allowedAlternativeIndices: Set<Int> = []
         for index in candidates.indices.dropFirst() {
+            if usesChineseAccuracyEnhancements,
+               !ChineseSubtitlePostProcessor.isSafeReferenceAlternative(
+                   primaryText: candidateTexts[0],
+                   candidateText: candidateTexts[index]
+               ) {
+                continue
+            }
             guard let confidence = meanTranscriptionConfidence(in: candidates[index]) else {
                 continue
             }
@@ -596,6 +630,8 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         from selection: CandidateSelection,
         localeIdentifier: String,
         to cues: inout [RecognizedCue],
+        fallbackTimeRange: CMTimeRange,
+        usesChineseAccuracyEnhancements: Bool,
         audioDuration: TimeInterval,
         progressRange: ClosedRange<Double>,
         progress: ProgressHandler?
@@ -603,7 +639,9 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         let newCues = makeCues(
             from: selection.attributedText,
             localeIdentifier: localeIdentifier,
-            referenceScore: selection.referenceScore
+            referenceScore: selection.referenceScore,
+            fallbackTimeRange: fallbackTimeRange,
+            usesChineseAccuracyEnhancements: usesChineseAccuracyEnhancements
         )
         cues.append(contentsOf: newCues)
 
@@ -652,7 +690,9 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
     private func makeCues(
         from attributedText: AttributedString,
         localeIdentifier: String,
-        referenceScore: Double
+        referenceScore: Double,
+        fallbackTimeRange: CMTimeRange,
+        usesChineseAccuracyEnhancements: Bool
     ) -> [RecognizedCue] {
         var cues: [RecognizedCue] = []
         var currentText = ""
@@ -688,24 +728,28 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
             confidenceCount = 0
         }
 
+        func appendUntimedText(_ rawText: String) {
+            if currentStart != nil {
+                currentText.append(rawText)
+                if let start = currentStart,
+                   let end = currentEnd,
+                   end.seconds - start.seconds >= minimumSentenceDuration,
+                   endsSentence(currentText) {
+                    flushCurrentCue()
+                }
+            } else if rawText.contains(where: { $0.isLetter || $0.isNumber }) {
+                pendingUntimedText.append(rawText)
+            } else if !cues.isEmpty {
+                cues[cues.count - 1].cue.text.append(rawText)
+            } else {
+                pendingUntimedText.append(rawText)
+            }
+        }
+
         for run in attributedText.runs {
             let rawText = String(attributedText[run.range].characters)
             guard let timeRange = run.audioTimeRange else {
-                if currentStart != nil {
-                    currentText.append(rawText)
-                    if let start = currentStart,
-                       let end = currentEnd,
-                       end.seconds - start.seconds >= minimumSentenceDuration,
-                       endsSentence(currentText) {
-                        flushCurrentCue()
-                    }
-                } else if rawText.contains(where: { $0.isLetter || $0.isNumber }) {
-                    pendingUntimedText.append(rawText)
-                } else if !cues.isEmpty {
-                    cues[cues.count - 1].cue.text.append(rawText)
-                } else {
-                    pendingUntimedText.append(rawText)
-                }
+                appendUntimedText(rawText)
                 continue
             }
 
@@ -714,6 +758,9 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
             guard start.seconds.isFinite,
                   end.seconds.isFinite,
                   CMTimeCompare(end, start) > 0 else {
+                if usesChineseAccuracyEnhancements {
+                    appendUntimedText(rawText)
+                }
                 continue
             }
 
@@ -765,11 +812,57 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         }
 
         flushCurrentCue()
-        if !pendingUntimedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-           !cues.isEmpty {
-            appendRecognizedText(pendingUntimedText, to: &cues[cues.count - 1].cue.text)
+        let pendingText = pendingUntimedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !pendingText.isEmpty {
+            if !cues.isEmpty {
+                appendRecognizedText(pendingUntimedText, to: &cues[cues.count - 1].cue.text)
+            } else if usesChineseAccuracyEnhancements,
+                      fallbackTimeRange.isValid,
+                      !fallbackTimeRange.isEmpty,
+                      fallbackTimeRange.start.seconds.isFinite,
+                      CMTimeRangeGetEnd(fallbackTimeRange).seconds.isFinite,
+                      CMTimeCompare(CMTimeRangeGetEnd(fallbackTimeRange), fallbackTimeRange.start) > 0 {
+                cues.append(RecognizedCue(
+                    cue: SubtitleCue(
+                        timeRange: fallbackTimeRange,
+                        text: pendingText
+                    ),
+                    confidence: nil,
+                    referenceScore: referenceScore,
+                    localeIdentifier: localeIdentifier
+                ))
+            }
         }
         return cues
+    }
+
+    private func applyingChineseReferenceCorrection(
+        to result: RecognitionPassResult,
+        referenceText: String
+    ) -> RecognitionPassResult {
+        guard !referenceText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return result
+        }
+        let correction = ChineseSubtitlePostProcessor.correct(
+            cueTexts: result.cues.map(\.cue.text),
+            referenceText: referenceText
+        )
+        guard correction.correctedTokenCount > 0,
+              correction.texts.count == result.cues.count else {
+            return result
+        }
+
+        let correctedCues = zip(result.cues, correction.texts).map { recognizedCue, text in
+            var correctedCue = recognizedCue
+            correctedCue.cue.text = text
+            return correctedCue
+        }
+        return RecognitionPassResult(
+            cues: correctedCues,
+            route: result.route,
+            referenceGuidedSelections: result.referenceGuidedSelections
+                + correction.correctedCueCount
+        )
     }
 
     private func mergeBilingualCues(
@@ -998,103 +1091,4 @@ final class LocalSubtitleTranscriber: @unchecked Sendable {
         return (table[lhs.count][rhs.count], lastReferenceIndex)
     }
 
-    @available(iOS 26.0, *)
-    private func extractAudio(from videoURL: URL) async throws -> ExtractedAudio {
-        let asset = AVURLAsset(
-            url: videoURL,
-            options: [AVURLAssetPreferPreciseDurationAndTimingKey: true]
-        )
-        let tracks: [AVAssetTrack]
-        do {
-            tracks = try await asset.loadTracks(withMediaType: .audio)
-        } catch {
-            throw LocalSubtitleTranscriptionError.audioExtractionFailed(
-                error.localizedDescription
-            )
-        }
-
-        guard let audioTrack = tracks.first else {
-            throw LocalSubtitleTranscriptionError.noAudioTrack
-        }
-
-        let audioTimeRange: CMTimeRange
-        do {
-            audioTimeRange = try await audioTrack.load(.timeRange)
-        } catch {
-            throw LocalSubtitleTranscriptionError.audioExtractionFailed(
-                error.localizedDescription
-            )
-        }
-        guard audioTimeRange.isValid,
-              !audioTimeRange.isEmpty,
-              audioTimeRange.start.isNumeric,
-              audioTimeRange.duration.isNumeric else {
-            throw LocalSubtitleTranscriptionError.emptyAudio
-        }
-
-        let directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("TeleprompterSubtitle", isDirectory: true)
-        do {
-            try FileManager.default.createDirectory(
-                at: directory,
-                withIntermediateDirectories: true
-            )
-        } catch {
-            throw LocalSubtitleTranscriptionError.audioExtractionFailed(
-                error.localizedDescription
-            )
-        }
-
-        let destination = directory
-            .appendingPathComponent(UUID().uuidString)
-            .appendingPathExtension("m4a")
-        try? FileManager.default.removeItem(at: destination)
-
-        let audioComposition = AVMutableComposition()
-        guard let compositionTrack = audioComposition.addMutableTrack(
-            withMediaType: .audio,
-            preferredTrackID: kCMPersistentTrackID_Invalid
-        ) else {
-            throw LocalSubtitleTranscriptionError.audioExtractionFailed(
-                "Could not create an audio composition track."
-            )
-        }
-        do {
-            // 原音轨插入独立音频的 0 秒，识别完成后再统一加回原始起点。
-            try compositionTrack.insertTimeRange(
-                audioTimeRange,
-                of: audioTrack,
-                at: .zero
-            )
-        } catch {
-            throw LocalSubtitleTranscriptionError.audioExtractionFailed(
-                error.localizedDescription
-            )
-        }
-
-        guard let exportSession = AVAssetExportSession(
-            asset: audioComposition,
-            presetName: AVAssetExportPresetAppleM4A
-        ) else {
-            throw LocalSubtitleTranscriptionError.audioExtractionFailed(
-                "AVAssetExportSession could not be created."
-            )
-        }
-        do {
-            try await exportSession.export(to: destination, as: .m4a)
-        } catch is CancellationError {
-            try? FileManager.default.removeItem(at: destination)
-            throw CancellationError()
-        } catch {
-            try? FileManager.default.removeItem(at: destination)
-            throw LocalSubtitleTranscriptionError.audioExtractionFailed(
-                error.localizedDescription
-            )
-        }
-
-        return ExtractedAudio(
-            url: destination,
-            timelineOffset: audioTimeRange.start
-        )
-    }
 }
