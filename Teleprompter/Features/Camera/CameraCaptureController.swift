@@ -83,6 +83,39 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
     }
 
+    enum ForegroundAudioGenerationState: Equatable {
+        case notStarted
+        case checking
+        case processing(progress: Double)
+        case saving
+        case completed
+        case failed(message: String)
+
+        var isProcessing: Bool {
+            switch self {
+            case .checking, .processing, .saving:
+                return true
+            case .notStarted, .completed, .failed:
+                return false
+            }
+        }
+
+        var overallProgress: Double {
+            switch self {
+            case .notStarted, .failed:
+                return 0
+            case .checking:
+                return 0.03
+            case .processing(let progress):
+                return 0.05 + min(max(progress, 0), 1) * 0.93
+            case .saving:
+                return 0.99
+            case .completed:
+                return 1
+            }
+        }
+    }
+
     struct RecordedClip: Identifiable {
         enum Source {
             case cameraCapture(photoAssetIdentifier: String)
@@ -105,9 +138,19 @@ final class CameraCaptureController: NSObject, ObservableObject {
         var subtitleGenerationState: SubtitleGenerationState = .notStarted
         var subtitledAssetIdentifier: String?
         var subtitledFileURL: URL?
+        var removesBackgroundAudio = false
+        var foregroundAudioGenerationState: ForegroundAudioGenerationState = .notStarted
+        var foregroundAudioAssetIdentifier: String?
+        var foregroundAudioFileURL: URL?
 
         var previewURL: URL {
-            subtitledFileURL ?? fileURL
+            subtitledFileURL
+                ?? (removesBackgroundAudio ? foregroundAudioFileURL : nil)
+                ?? fileURL
+        }
+
+        var subtitleSourceURL: URL {
+            removesBackgroundAudio ? foregroundAudioFileURL ?? fileURL : fileURL
         }
     }
 
@@ -130,9 +173,14 @@ final class CameraCaptureController: NSObject, ObservableObject {
     @Published private(set) var savedClips: [RecordedClip] = []
     @Published private(set) var deletingClipIdentifier: String?
     @Published private(set) var subtitleProcessingClipIdentifier: String?
+    @Published private(set) var foregroundAudioProcessingClipIdentifier: String?
 
     var isGeneratingSubtitles: Bool {
         subtitleProcessingClipIdentifier != nil
+    }
+
+    var isProcessingVideo: Bool {
+        isGeneratingSubtitles || foregroundAudioProcessingClipIdentifier != nil
     }
 
     /// 供 `CameraPreviewView(session:device:)` 显示实时画面。
@@ -165,6 +213,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
     private var notificationTokens: [NSObjectProtocol] = []
     private var subtitleGenerationTask: Task<Void, Never>?
+    private var foregroundAudioGenerationTask: Task<Void, Never>?
 
     override init() {
         temporaryDirectory = FileManager.default.temporaryDirectory
@@ -178,6 +227,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
     deinit {
         permissionTask?.cancel()
         subtitleGenerationTask?.cancel()
+        foregroundAudioGenerationTask?.cancel()
         notificationTokens.forEach(NotificationCenter.default.removeObserver)
 
         let session = session
@@ -512,6 +562,10 @@ final class CameraCaptureController: NSObject, ObservableObject {
                 throw CameraCaptureFailure("无法添加麦克风输入")
             }
             session.addInput(newAudioInput)
+            if #available(iOS 18.0, *),
+               newAudioInput.isMultichannelAudioModeSupported(.firstOrderAmbisonics) {
+                newAudioInput.multichannelAudioMode = .firstOrderAmbisonics
+            }
 
             guard session.canAddOutput(movieOutput) else {
                 throw CameraCaptureFailure("无法添加录像输出")
@@ -730,8 +784,181 @@ final class CameraCaptureController: NSObject, ObservableObject {
         }
     }
 
+    func setBackgroundRemovalEnabled(for clip: RecordedClip, enabled: Bool) {
+        guard !isProcessingVideo,
+              let currentClip = savedClips.first(where: { $0.id == clip.id }),
+              canChangeForegroundAudioOption(for: currentClip) else {
+            errorMessage = String(localized: "当前字幕流程已开始，无法再切换纯人声处理")
+            return
+        }
+
+        updateSavedClip(identifier: currentClip.id) {
+            $0.removesBackgroundAudio = enabled
+            if !enabled,
+               case .failed = $0.foregroundAudioGenerationState {
+                $0.foregroundAudioGenerationState = .notStarted
+            }
+        }
+    }
+
+    func generateForegroundAudio(for clip: RecordedClip) {
+        guard !isSaving,
+              deletingClipIdentifier == nil,
+              !isProcessingVideo else {
+            errorMessage = String(localized: "请等待当前视频处理完成")
+            return
+        }
+        guard let currentClip = savedClips.first(where: { $0.id == clip.id }) else {
+            errorMessage = String(localized: "找不到需要处理的视频")
+            return
+        }
+        guard currentClip.removesBackgroundAudio,
+              canChangeForegroundAudioOption(for: currentClip) else {
+            errorMessage = String(localized: "当前字幕流程已开始，无法再切换纯人声处理")
+            return
+        }
+        guard currentClip.foregroundAudioGenerationState != .completed else { return }
+        guard FileManager.default.fileExists(atPath: currentClip.fileURL.path) else {
+            updateSavedClip(identifier: currentClip.id) {
+                $0.foregroundAudioGenerationState = .failed(
+                    message: String(localized: "视频临时文件已失效，请重新选择或录制")
+                )
+            }
+            return
+        }
+
+        errorMessage = nil
+        saveConfirmation = nil
+        foregroundAudioProcessingClipIdentifier = currentClip.id
+        updateSavedClip(identifier: currentClip.id) {
+            $0.foregroundAudioGenerationState = .checking
+        }
+
+        foregroundAudioGenerationTask = Task { [weak self] in
+            guard let self else { return }
+            await self.performForegroundAudioGeneration(
+                clipIdentifier: currentClip.id,
+                sourceURL: currentClip.fileURL
+            )
+        }
+    }
+
+    func cancelForegroundAudioGeneration(for clip: RecordedClip) {
+        guard foregroundAudioProcessingClipIdentifier == clip.id,
+              let currentClip = savedClips.first(where: { $0.id == clip.id }),
+              currentClip.foregroundAudioGenerationState != .saving else { return }
+        cancelForegroundAudioGeneration()
+    }
+
+    func cancelForegroundAudioGeneration() {
+        guard let identifier = foregroundAudioProcessingClipIdentifier,
+              let currentClip = savedClips.first(where: { $0.id == identifier }),
+              currentClip.foregroundAudioGenerationState != .saving else { return }
+        foregroundAudioGenerationTask?.cancel()
+        ForegroundAudioRenderer.shared.cancel()
+        SpleeterForegroundAudioRenderer.shared.cancel()
+    }
+
+    private func performForegroundAudioGeneration(
+        clipIdentifier: String,
+        sourceURL: URL
+    ) async {
+        var renderedURL: URL?
+        defer {
+            if foregroundAudioProcessingClipIdentifier == clipIdentifier {
+                foregroundAudioProcessingClipIdentifier = nil
+                foregroundAudioGenerationTask = nil
+            }
+        }
+
+        do {
+            let appleSupport = await ForegroundAudioRenderer.shared.support(for: sourceURL)
+            try Task.checkCancellation()
+            guard savedClips.contains(where: { $0.id == clipIdentifier }) else {
+                throw CancellationError()
+            }
+
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.foregroundAudioGenerationState = .processing(progress: 0)
+            }
+            let destinationURL = temporaryDirectory
+                .appendingPathComponent("\(UUID().uuidString)-foreground")
+                .appendingPathExtension("mov")
+            let reportProgress: (Double) -> Void = { [weak self] progress in
+                guard let self,
+                      self.foregroundAudioProcessingClipIdentifier == clipIdentifier else {
+                    return
+                }
+                self.updateSavedClip(identifier: clipIdentifier) {
+                    guard case .processing = $0.foregroundAudioGenerationState else { return }
+                    $0.foregroundAudioGenerationState = .processing(progress: progress)
+                }
+            }
+
+            if appleSupport == .available {
+                renderedURL = try await ForegroundAudioRenderer.shared.render(
+                    videoURL: sourceURL,
+                    outputURL: destinationURL,
+                    progress: reportProgress
+                )
+            } else {
+                let fallbackSupport = await SpleeterForegroundAudioRenderer.shared.support(
+                    for: sourceURL
+                )
+                try Task.checkCancellation()
+                guard fallbackSupport == .available else {
+                    throw CameraCaptureFailure(fallbackSupport.localizedDescription)
+                }
+                renderedURL = try await SpleeterForegroundAudioRenderer.shared.render(
+                    videoURL: sourceURL,
+                    outputURL: destinationURL,
+                    progress: reportProgress
+                )
+            }
+
+            try Task.checkCancellation()
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.foregroundAudioGenerationState = .saving
+            }
+            let assetIdentifier = try await saveForegroundAudioVideoToPhotoLibrary(
+                at: destinationURL
+            )
+
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.foregroundAudioAssetIdentifier = assetIdentifier
+                $0.foregroundAudioFileURL = destinationURL
+                $0.foregroundAudioGenerationState = .completed
+            }
+        } catch is CancellationError {
+            if let renderedURL {
+                try? FileManager.default.removeItem(at: renderedURL)
+            }
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.foregroundAudioGenerationState = .notStarted
+            }
+        } catch {
+            if let renderedURL {
+                try? FileManager.default.removeItem(at: renderedURL)
+            }
+            updateSavedClip(identifier: clipIdentifier) {
+                $0.foregroundAudioGenerationState = .failed(message: error.localizedDescription)
+            }
+        }
+    }
+
+    private func canChangeForegroundAudioOption(for clip: RecordedClip) -> Bool {
+        switch clip.subtitleGenerationState {
+        case .notStarted:
+            return true
+        case .failed where clip.subtitleCues.isEmpty:
+            return true
+        case .transcribing, .reviewing, .rendering, .saving, .completed, .failed:
+            return false
+        }
+    }
+
     func updateSubtitleCues(for clip: RecordedClip, cues: [SubtitleCue]) {
-        guard subtitleProcessingClipIdentifier == nil,
+        guard !isProcessingVideo,
               let currentClip = savedClips.first(where: { $0.id == clip.id }),
               currentClip.subtitleGenerationState != .completed else { return }
         let validCues = cues.filter(\.isValid).sorted {
@@ -755,18 +982,24 @@ final class CameraCaptureController: NSObject, ObservableObject {
             errorMessage = "请等待当前视频操作完成"
             return
         }
-        guard subtitleProcessingClipIdentifier == nil else {
-            errorMessage = "请等待当前字幕视频生成完成"
+        guard !isProcessingVideo else {
+            errorMessage = "请等待当前视频处理完成"
             return
         }
         guard let currentClip = savedClips.first(where: { $0.id == clip.id }) else {
             errorMessage = "找不到需要生成字幕的视频"
             return
         }
+        guard !currentClip.removesBackgroundAudio
+                || currentClip.foregroundAudioGenerationState == .completed else {
+            errorMessage = String(localized: "请先生成纯人声版，再识别字幕")
+            return
+        }
         guard currentClip.subtitleGenerationState != .completed else { return }
-        guard FileManager.default.fileExists(atPath: currentClip.fileURL.path) else {
+        let sourceURL = currentClip.subtitleSourceURL
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
             updateSavedClip(identifier: currentClip.id) {
-                $0.subtitleGenerationState = .failed(message: "原视频临时文件已失效，请重新录制")
+                $0.subtitleGenerationState = .failed(message: "视频临时文件已失效，请重新选择或录制")
             }
             return
         }
@@ -786,7 +1019,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
             guard let self else { return }
             await self.performSubtitleRecognition(
                 clipIdentifier: currentClip.id,
-                sourceURL: currentClip.fileURL,
+                sourceURL: sourceURL,
                 language: language,
                 referenceText: referenceText
             )
@@ -799,12 +1032,17 @@ final class CameraCaptureController: NSObject, ObservableObject {
             errorMessage = "请等待当前视频操作完成"
             return
         }
-        guard subtitleProcessingClipIdentifier == nil else {
-            errorMessage = "请等待当前字幕视频生成完成"
+        guard !isProcessingVideo else {
+            errorMessage = "请等待当前视频处理完成"
             return
         }
         guard let currentClip = savedClips.first(where: { $0.id == clip.id }) else {
             errorMessage = "找不到需要生成字幕的视频"
+            return
+        }
+        guard !currentClip.removesBackgroundAudio
+                || currentClip.foregroundAudioGenerationState == .completed else {
+            errorMessage = String(localized: "请先生成纯人声版，再生成硬字幕")
             return
         }
         guard currentClip.subtitleGenerationState != .completed else { return }
@@ -813,9 +1051,10 @@ final class CameraCaptureController: NSObject, ObservableObject {
             errorMessage = String(localized: "没有可生成的字幕")
             return
         }
-        guard FileManager.default.fileExists(atPath: currentClip.fileURL.path) else {
+        let sourceURL = currentClip.subtitleSourceURL
+        guard FileManager.default.fileExists(atPath: sourceURL.path) else {
             updateSavedClip(identifier: currentClip.id) {
-                $0.subtitleGenerationState = .failed(message: "原视频临时文件已失效，请重新录制")
+                $0.subtitleGenerationState = .failed(message: "视频临时文件已失效，请重新选择或录制")
             }
             return
         }
@@ -832,7 +1071,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
             guard let self else { return }
             await self.performSubtitleRendering(
                 clipIdentifier: currentClip.id,
-                sourceURL: currentClip.fileURL,
+                sourceURL: sourceURL,
                 cues: cues
             )
         }
@@ -993,6 +1232,33 @@ final class CameraCaptureController: NSObject, ObservableObject {
         return identifier
     }
 
+    private func saveForegroundAudioVideoToPhotoLibrary(at outputURL: URL) async throws -> String {
+        guard FileManager.default.fileExists(atPath: outputURL.path) else {
+            throw CameraCaptureFailure(String(localized: "纯人声版视频文件不存在"))
+        }
+
+        if PHPhotoLibrary.authorizationStatus(for: .addOnly) == .notDetermined {
+            photoPermissionStatus = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        } else {
+            photoPermissionStatus = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+        }
+        guard photoPermissionStatus == .authorized || photoPermissionStatus == .limited else {
+            throw CameraCaptureFailure(permissionMessage(for: photoPermissionStatus))
+        }
+
+        let identifierBox = SavedAssetIdentifierBox()
+        try await PHPhotoLibrary.shared().performChanges {
+            identifierBox.value = PHAssetChangeRequest
+                .creationRequestForAssetFromVideo(atFileURL: outputURL)?
+                .placeholderForCreatedAsset?
+                .localIdentifier
+        }
+        guard let identifier = identifierBox.value else {
+            throw CameraCaptureFailure(String(localized: "系统未创建纯人声版照片资源"))
+        }
+        return identifier
+    }
+
     private func updateSavedClip(
         identifier: String,
         mutation: (inout RecordedClip) -> Void
@@ -1007,7 +1273,8 @@ final class CameraCaptureController: NSObject, ObservableObject {
         guard !isSaving,
               deletingClipIdentifier == nil,
               let currentClip = savedClips.first(where: { $0.id == clip.id }),
-              !currentClip.subtitleGenerationState.isProcessing else { return }
+              !currentClip.subtitleGenerationState.isProcessing,
+              !currentClip.foregroundAudioGenerationState.isProcessing else { return }
 
         errorMessage = nil
         saveConfirmation = nil
@@ -1102,6 +1369,7 @@ final class CameraCaptureController: NSObject, ObservableObject {
         let assetIdentifiers = [
             clip.source.ownedPhotoAssetIdentifier,
             clip.subtitledAssetIdentifier,
+            clip.foregroundAudioAssetIdentifier,
         ].compactMap { $0 }
         guard !assetIdentifiers.isEmpty else {
             await finishDeletingSavedClip(clip)
@@ -1151,6 +1419,11 @@ final class CameraCaptureController: NSObject, ObservableObject {
         var localFilesRemoved = await removeTemporaryRecordingAndReport(at: clip.fileURL)
         if let subtitledFileURL = clip.subtitledFileURL {
             localFilesRemoved = await removeTemporaryRecordingAndReport(at: subtitledFileURL)
+                && localFilesRemoved
+        }
+        if let foregroundAudioFileURL = clip.foregroundAudioFileURL,
+           foregroundAudioFileURL != clip.subtitledFileURL {
+            localFilesRemoved = await removeTemporaryRecordingAndReport(at: foregroundAudioFileURL)
                 && localFilesRemoved
         }
         guard localFilesRemoved else {

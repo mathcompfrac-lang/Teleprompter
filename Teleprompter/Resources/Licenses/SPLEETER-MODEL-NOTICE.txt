@@ -1,0 +1,20 @@
+Spleeter 2-stem Core ML model notice
+
+This app includes a converted copy of Deezer Spleeter's 2-stem pretrained
+model. Spleeter source code and pretrained models are distributed under the
+MIT License. The required license text is bundled as SPLEETER-LICENSE.txt.
+
+Core ML conversion source:
+https://huggingface.co/ark-tech/spleeter-2stems-coreml
+
+Pinned revision:
+b1ae6a0b706d2843d658a800852471eb3810c852
+
+Bundled model:
+Spleeter2StemsVocalMask-F1536-fp16.mlmodelc
+
+Original Deezer 2stems archive SHA-256:
+f3a90b39dd2874269e8b05a48a86745df897b848c61f3958efc80a39152bd692
+
+Bundled Core ML weight.bin SHA-256:
+f511e2c558185481ff847e2f2bc34aee38a29af0ef73140eb4dced5c18192d6a

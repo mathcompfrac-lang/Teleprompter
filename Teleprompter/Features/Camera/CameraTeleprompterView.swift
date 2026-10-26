@@ -12,6 +12,25 @@ private func subtitleTranscriptionStatusText(for progress: Double) -> LocalizedS
     return "正在本地识别字幕…"
 }
 
+private func foregroundAudioStatusText(
+    for state: CameraCaptureController.ForegroundAudioGenerationState
+) -> LocalizedStringKey {
+    switch state {
+    case .notStarted:
+        return "等待生成纯人声版"
+    case .checking:
+        return "正在检查视频音轨…"
+    case .processing:
+        return "正在分离并合成前景人声…"
+    case .saving:
+        return "正在保存纯人声版…"
+    case .completed:
+        return "纯人声版已保存"
+    case .failed:
+        return "纯人声处理失败"
+    }
+}
+
 /// App 内提词拍摄页面。相机只录制采集流，提词窗仅叠加在预览层上方。
 struct CameraTeleprompterView: View {
 
@@ -89,6 +108,10 @@ struct CameraTeleprompterView: View {
             if camera.isGeneratingSubtitles {
                 subtitleGenerationOverlay
             }
+
+            if camera.foregroundAudioProcessingClipIdentifier != nil {
+                foregroundAudioGenerationOverlay
+            }
         }
         .background(Color.black)
         .statusBarHidden(true)
@@ -97,7 +120,7 @@ struct CameraTeleprompterView: View {
                 || camera.isSaving
                 || camera.hasPendingSave
                 || camera.deletingClipIdentifier != nil
-                || camera.isGeneratingSubtitles
+                || camera.isProcessingVideo
                 || countdownValue != nil
         )
         .onAppear {
@@ -105,7 +128,7 @@ struct CameraTeleprompterView: View {
             // 语音识别和录像都会使用麦克风。首版进入拍摄页时停止语音链，
             // 保证相机录音稳定，正文仍可直接手势滚动。
             viewModel.stopScrolling()
-            if !camera.isGeneratingSubtitles {
+            if !camera.isProcessingVideo {
                 camera.requestPermissionsAndStart()
             }
         }
@@ -114,13 +137,14 @@ struct CameraTeleprompterView: View {
             countdownTask?.cancel()
             countdownValue = nil
             camera.cancelSubtitleGeneration()
+            camera.cancelForegroundAudioGeneration()
             camera.stopSession()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 if isCameraViewVisible,
                    selectedClip == nil,
-                   !camera.isGeneratingSubtitles,
+                   !camera.isProcessingVideo,
                    !camera.isRunning,
                    !camera.isSaving,
                    !camera.hasPendingSave,
@@ -142,9 +166,9 @@ struct CameraTeleprompterView: View {
             alertOffersSettings = false
             alertMessage = message
         }
-        .onChange(of: camera.isGeneratingSubtitles) { wasGenerating, isGenerating in
-            if wasGenerating,
-               !isGenerating,
+        .onChange(of: camera.isProcessingVideo) { wasProcessing, isProcessing in
+            if wasProcessing,
+               !isProcessing,
                selectedClip == nil,
                isCameraViewVisible,
                scenePhase == .active {
@@ -190,7 +214,7 @@ struct CameraTeleprompterView: View {
             Text("退出后将无法恢复这段临时视频。")
         }
         .fullScreenCover(item: $selectedClip, onDismiss: {
-            if !camera.isGeneratingSubtitles,
+            if !camera.isProcessingVideo,
                isCameraViewVisible,
                scenePhase == .active {
                 camera.requestPermissionsAndStart()
@@ -221,7 +245,7 @@ struct CameraTeleprompterView: View {
                 camera.isRecording
                     || camera.isSaving
                     || camera.deletingClipIdentifier != nil
-                    || camera.isGeneratingSubtitles
+                    || camera.isProcessingVideo
                     || countdownValue != nil
             )
             .accessibilityLabel("关闭提词拍摄")
@@ -257,7 +281,7 @@ struct CameraTeleprompterView: View {
                 !camera.isRunning
                     || camera.isRecording
                     || camera.isSaving
-                    || camera.isGeneratingSubtitles
+                    || camera.isProcessingVideo
                     || countdownValue != nil
             )
             .accessibilityLabel(camera.cameraPosition == .front ? "切换到后置摄像头" : "切换到前置摄像头")
@@ -296,7 +320,7 @@ struct CameraTeleprompterView: View {
                     || camera.isSaving
                     || camera.hasPendingSave
                     || camera.deletingClipIdentifier != nil
-                    || camera.isGeneratingSubtitles
+                    || camera.isProcessingVideo
                     || countdownValue != nil
             )
             .accessibilityLabel(camera.isRecording ? "停止录像" : "开始录像")
@@ -316,6 +340,9 @@ struct CameraTeleprompterView: View {
 
     private var cameraStatusText: String {
         if camera.deletingClipIdentifier != nil { return "正在删除" }
+        if camera.foregroundAudioProcessingClipIdentifier != nil {
+            return String(localized: "正在生成纯人声版")
+        }
         if camera.isGeneratingSubtitles { return String(localized: "正在生成字幕版") }
         if camera.isSaving { return "正在保存" }
         if camera.hasPendingSave { return "视频待保存" }
@@ -386,6 +413,14 @@ struct CameraTeleprompterView: View {
                         .background(.black.opacity(0.72), in: Circle())
                         .padding(5)
                 }
+                .overlay(alignment: .bottomTrailing) {
+                    if clip.foregroundAudioGenerationState != .notStarted {
+                        foregroundAudioBadge(for: clip)
+                            .frame(width: 28, height: 28)
+                            .background(.black.opacity(0.72), in: Circle())
+                            .padding(5)
+                    }
+                }
             }
             .buttonStyle(.plain)
             .disabled(savedClipInteractionDisabled)
@@ -421,7 +456,7 @@ struct CameraTeleprompterView: View {
     private var savedClipInteractionDisabled: Bool {
         camera.isRecording
             || camera.isSaving
-            || camera.isGeneratingSubtitles
+            || camera.isProcessingVideo
             || camera.deletingClipIdentifier != nil
             || countdownValue != nil
     }
@@ -488,6 +523,42 @@ struct CameraTeleprompterView: View {
             return Text("字幕版已保存")
         case .failed:
             return Text("字幕生成失败")
+        }
+    }
+
+    @ViewBuilder
+    private func foregroundAudioBadge(
+        for clip: CameraCaptureController.RecordedClip
+    ) -> some View {
+        switch clip.foregroundAudioGenerationState {
+        case .notStarted:
+            EmptyView()
+        case .checking, .processing:
+            ZStack {
+                Circle()
+                    .stroke(.white.opacity(0.3), lineWidth: 2)
+                Circle()
+                    .trim(
+                        from: 0,
+                        to: CGFloat(clip.foregroundAudioGenerationState.overallProgress)
+                    )
+                    .stroke(.white, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            }
+            .frame(width: 18, height: 18)
+            .accessibilityLabel("正在生成纯人声版")
+        case .saving:
+            ProgressView()
+                .tint(.white)
+                .accessibilityLabel("正在保存纯人声版")
+        case .completed:
+            Image(systemName: "waveform.badge.mic")
+                .foregroundStyle(.green)
+                .accessibilityLabel("纯人声版已保存")
+        case .failed:
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.yellow)
+                .accessibilityLabel("纯人声处理失败")
         }
     }
 
@@ -733,6 +804,37 @@ struct CameraTeleprompterView: View {
         }
     }
 
+    @ViewBuilder
+    private var foregroundAudioGenerationOverlay: some View {
+        if let identifier = camera.foregroundAudioProcessingClipIdentifier,
+           let clip = camera.savedClips.first(where: { $0.id == identifier }) {
+            VStack(spacing: 12) {
+                ProgressView(value: clip.foregroundAudioGenerationState.overallProgress)
+                    .progressViewStyle(.linear)
+                    .tint(.white)
+                    .frame(width: 190)
+
+                Text(foregroundAudioStatusText(for: clip.foregroundAudioGenerationState))
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+
+                if clip.foregroundAudioGenerationState != .saving {
+                    Button("取消生成") {
+                        camera.cancelForegroundAudioGeneration(for: clip)
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .frame(minHeight: 44)
+                    .background(.white.opacity(0.18), in: Capsule())
+                }
+            }
+            .padding(24)
+            .background(.black.opacity(0.78), in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
     private func subtitleProgress(
         for state: CameraCaptureController.SubtitleGenerationState
     ) -> Double {
@@ -836,13 +938,14 @@ struct ImportedVideoSubtitleView: View {
         }
         .statusBarHidden(true)
         .interactiveDismissDisabled(
-            (importedClip == nil && importError == nil) || camera.isGeneratingSubtitles
+            (importedClip == nil && importError == nil) || camera.isProcessingVideo
         )
         .task {
             await importVideo()
         }
         .onDisappear {
             camera.cancelSubtitleGeneration()
+            camera.cancelForegroundAudioGeneration()
             TeleprompterVideoImportStaging.removeFileIfOwned(at: sourceURL)
         }
     }
@@ -1083,9 +1186,10 @@ private struct RecordedVideoPreviewView: View {
 
     @ObservedObject var camera: CameraCaptureController
     let clipIdentifier: String
-    let preventsDismissDuringSubtitleGeneration: Bool
+    let preventsDismissDuringVideoProcessing: Bool
     @StateObject private var playback: RecordedVideoPlaybackController
     @State private var isSubtitleSavedToastVisible = false
+    @State private var isForegroundAudioSavedToastVisible = false
     @State private var recognitionLanguage: SubtitleRecognitionLanguage
     @State private var referenceText: String
     @State private var showRecognitionSettings = false
@@ -1098,7 +1202,7 @@ private struct RecordedVideoPreviewView: View {
     ) {
         self.camera = camera
         clipIdentifier = clip.id
-        self.preventsDismissDuringSubtitleGeneration = preventsDismissDuringSubtitleGeneration
+        preventsDismissDuringVideoProcessing = preventsDismissDuringSubtitleGeneration
         _playback = StateObject(
             wrappedValue: RecordedVideoPlaybackController(url: clip.previewURL)
         )
@@ -1111,61 +1215,78 @@ private struct RecordedVideoPreviewView: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.black
-                .ignoresSafeArea()
+        GeometryReader { proxy in
+            ZStack {
+                Color.black
+                    .ignoresSafeArea()
 
-            VideoPlayer(player: playback.player)
-                .ignoresSafeArea()
+                VideoPlayer(player: playback.player)
+                    .ignoresSafeArea()
 
-            if let cue = activeSubtitleCue {
-                subtitlePreviewOverlay(cue)
-            }
+                if let cue = activeSubtitleCue {
+                    subtitlePreviewOverlay(cue)
+                }
 
-            VStack {
-                HStack {
-                    if clip?.subtitleGenerationState == .completed {
-                        Label("字幕版", systemImage: "captions.bubble.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 12)
-                            .frame(minHeight: 36)
-                            .background(.black.opacity(0.62), in: Capsule())
+                VStack {
+                    HStack {
+                        if let clip, clip.subtitleGenerationState == .completed {
+                            Label("字幕版", systemImage: "captions.bubble.fill")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .frame(minHeight: 36)
+                                .background(.black.opacity(0.62), in: Capsule())
+                        } else if clip?.removesBackgroundAudio == true,
+                                  clip?.foregroundAudioGenerationState == .completed {
+                            Label("纯人声版", systemImage: "waveform.badge.mic")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .frame(minHeight: 36)
+                                .background(.black.opacity(0.62), in: Capsule())
+                        }
+
+                        Spacer()
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(.black.opacity(0.62), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(
+                            preventsDismissDuringVideoProcessing
+                                && camera.isProcessingVideo
+                        )
+                        .accessibilityLabel("关闭录像预览")
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
 
                     Spacer()
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(.black.opacity(0.62), in: Circle())
+
+                    ScrollView(.vertical) {
+                        VStack(spacing: 8) {
+                            foregroundAudioActionPanel
+                            subtitleActionPanel
+                        }
+                        .padding(.horizontal, 18)
                     }
-                    .buttonStyle(.plain)
-                    .disabled(
-                        preventsDismissDuringSubtitleGeneration
-                            && camera.isGeneratingSubtitles
-                    )
-                    .accessibilityLabel("关闭录像预览")
+                    .scrollIndicators(.hidden)
+                    .frame(maxHeight: max(96, proxy.size.height * 0.42))
+
+                    playbackScrubber
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 14)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-
-                Spacer()
-
-                subtitleActionPanel
-                    .padding(.horizontal, 18)
-
-                playbackScrubber
-                    .padding(.horizontal, 18)
-                    .padding(.bottom, 14)
             }
         }
         .statusBarHidden(true)
         .interactiveDismissDisabled(
-            preventsDismissDuringSubtitleGeneration && camera.isGeneratingSubtitles
+            preventsDismissDuringVideoProcessing && camera.isProcessingVideo
         )
         .onAppear {
             if let previewURL = clip?.previewURL {
@@ -1195,12 +1316,31 @@ private struct RecordedVideoPreviewView: View {
                 )
             }
         }
+        .onChange(of: clip?.foregroundAudioGenerationState) { oldState, newState in
+            if oldState != .completed, newState == .completed {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isForegroundAudioSavedToastVisible = true
+                }
+                UIAccessibility.post(
+                    notification: .announcement,
+                    argument: String(localized: "纯人声版已另存到系统照片")
+                )
+            }
+        }
         .task(id: isSubtitleSavedToastVisible) {
             guard isSubtitleSavedToastVisible else { return }
             try? await Task.sleep(nanoseconds: 3_000_000_000)
             guard !Task.isCancelled else { return }
             withAnimation(.easeInOut(duration: 0.2)) {
                 isSubtitleSavedToastVisible = false
+            }
+        }
+        .task(id: isForegroundAudioSavedToastVisible) {
+            guard isForegroundAudioSavedToastVisible else { return }
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isForegroundAudioSavedToastVisible = false
             }
         }
         .onDisappear {
@@ -1323,23 +1463,175 @@ private struct RecordedVideoPreviewView: View {
     }
 
     @ViewBuilder
+    private var foregroundAudioActionPanel: some View {
+        if let clip {
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle(
+                    "保留人声（Beta）",
+                    isOn: Binding(
+                        get: { clip.removesBackgroundAudio },
+                        set: { enabled in
+                            camera.setBackgroundRemovalEnabled(for: clip, enabled: enabled)
+                        }
+                    )
+                )
+                .font(.headline)
+                .tint(.blue)
+                .disabled(!canChangeForegroundAudioOption(for: clip))
+
+                Text("优先使用空间音频人声分离；普通视频可减弱背景音乐。风噪、车流等环境声可能无法去除，原视频不会被覆盖。")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.78))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if clip.removesBackgroundAudio {
+                    foregroundAudioControls(for: clip)
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(12)
+            .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private func canChangeForegroundAudioOption(
+        for clip: CameraCaptureController.RecordedClip
+    ) -> Bool {
+        guard !clip.foregroundAudioGenerationState.isProcessing,
+              !camera.isProcessingVideo else { return false }
+        switch clip.subtitleGenerationState {
+        case .notStarted:
+            return true
+        case .failed where clip.subtitleCues.isEmpty:
+            return true
+        case .transcribing, .reviewing, .rendering, .saving, .completed, .failed:
+            return false
+        }
+    }
+
+    @ViewBuilder
+    private func foregroundAudioControls(
+        for clip: CameraCaptureController.RecordedClip
+    ) -> some View {
+        switch clip.foregroundAudioGenerationState {
+        case .notStarted:
+            Button {
+                camera.generateForegroundAudio(for: clip)
+            } label: {
+                Label("生成纯人声版", systemImage: "waveform.badge.mic")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 46)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.blue)
+            .disabled(camera.isProcessingVideo)
+
+        case .checking, .processing:
+            foregroundAudioProgressPanel(
+                state: clip.foregroundAudioGenerationState,
+                allowsCancellation: true,
+                clip: clip
+            )
+
+        case .saving:
+            foregroundAudioProgressPanel(
+                state: clip.foregroundAudioGenerationState,
+                allowsCancellation: false,
+                clip: clip
+            )
+
+        case .completed:
+            if isForegroundAudioSavedToastVisible {
+                Label("纯人声版已另存到系统照片", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .background(.black.opacity(0.84), in: RoundedRectangle(cornerRadius: 12))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(.green.opacity(0.9), lineWidth: 1)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+        case .failed(let message):
+            VStack(spacing: 8) {
+                Text(message)
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button {
+                    camera.generateForegroundAudio(for: clip)
+                } label: {
+                    Label("重试生成纯人声版", systemImage: "arrow.clockwise")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+                .disabled(camera.isProcessingVideo)
+            }
+        }
+    }
+
+    private func foregroundAudioProgressPanel(
+        state: CameraCaptureController.ForegroundAudioGenerationState,
+        allowsCancellation: Bool,
+        clip: CameraCaptureController.RecordedClip
+    ) -> some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 10) {
+                ProgressView(value: state.overallProgress)
+                    .progressViewStyle(.linear)
+                    .tint(.white)
+                Text("\(Int(state.overallProgress * 100))%")
+                    .font(.caption.monospacedDigit())
+            }
+
+            HStack {
+                Text(foregroundAudioStatusText(for: state))
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                if allowsCancellation {
+                    Button("取消") {
+                        camera.cancelForegroundAudioGeneration(for: clip)
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .frame(minWidth: 44, minHeight: 44)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
     private var subtitleActionPanel: some View {
         if let clip {
             switch clip.subtitleGenerationState {
             case .notStarted:
                 if #available(iOS 26.0, *) {
-                    Button {
-                        recognitionLanguage = clip.subtitleRecognitionLanguage
-                        referenceText = clip.subtitleReferenceText
-                        showRecognitionSettings = true
-                    } label: {
-                        Label("识别字幕", systemImage: "captions.bubble")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 46)
+                    VStack(spacing: 6) {
+                        if needsForegroundAudioFirst(clip) {
+                            Text("请先生成纯人声版，再识别字幕")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.78))
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: .infinity)
+                        }
+
+                        Button {
+                            recognitionLanguage = clip.subtitleRecognitionLanguage
+                            referenceText = clip.subtitleReferenceText
+                            showRecognitionSettings = true
+                        } label: {
+                            Label("识别字幕", systemImage: "captions.bubble")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity, minHeight: 46)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                        .disabled(camera.isProcessingVideo || needsForegroundAudioFirst(clip))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-                    .disabled(camera.isGeneratingSubtitles)
                 } else {
                     Label(
                         "本地硬字幕需要 iOS 26 或更高版本",
@@ -1439,7 +1731,7 @@ private struct RecordedVideoPreviewView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.orange)
-                        .disabled(camera.isGeneratingSubtitles)
+                        .disabled(camera.isProcessingVideo || needsForegroundAudioFirst(clip))
                     } else {
                         Button {
                             showSubtitleReview = true
@@ -1450,13 +1742,20 @@ private struct RecordedVideoPreviewView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.orange)
-                        .disabled(camera.isGeneratingSubtitles)
+                        .disabled(camera.isProcessingVideo)
                     }
                 }
                 .padding(10)
                 .background(.black.opacity(0.72), in: RoundedRectangle(cornerRadius: 12))
             }
         }
+    }
+
+    private func needsForegroundAudioFirst(
+        _ clip: CameraCaptureController.RecordedClip
+    ) -> Bool {
+        clip.removesBackgroundAudio
+            && clip.foregroundAudioGenerationState != .completed
     }
 
     private func subtitleProgressPanel(

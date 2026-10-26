@@ -7,6 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5F6A1B2C3D4E5F60718293A4 = {
+            fileRef = "4F6A1B2C3D4E5F60718293A4";
+            isa = "PBXBuildFile";
+        };
+		5F6A1B2C3D4E5F60718293A5 = {
+            fileRef = "4F6A1B2C3D4E5F60718293A5";
+            isa = "PBXBuildFile";
+        };
+		5F6A1B2C3D4E5F60718293A6 = {
+            fileRef = "4F6A1B2C3D4E5F60718293A6";
+            isa = "PBXBuildFile";
+        };
+		5F6A1B2C3D4E5F60718293A7 = {
+            fileRef = "4F6A1B2C3D4E5F60718293A7";
+            isa = "PBXBuildFile";
+        };
+		5F6A1B2C3D4E5F60718293A8 = {
+            fileRef = "4F6A1B2C3D4E5F60718293A8";
+            isa = "PBXBuildFile";
+        };
 		077F39D4BF994B6B99564096 = {
             fileRef = "F017A27FB9EF4690BC66424E";
             isa = "PBXBuildFile";
@@ -138,6 +158,36 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4F6A1B2C3D4E5F60718293A4 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Audio/ForegroundAudioRenderer.swift";
+            sourceTree = "<group>";
+        };
+		4F6A1B2C3D4E5F60718293A5 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "sourcecode.swift";
+            path = "Features/Audio/SpleeterForegroundAudioRenderer.swift";
+            sourceTree = "<group>";
+        };
+		4F6A1B2C3D4E5F60718293A6 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "folder";
+            path = "Models/Spleeter2StemsVocalMask-F1536-fp16.mlmodelc";
+            sourceTree = "<group>";
+        };
+		4F6A1B2C3D4E5F60718293A7 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "text";
+            path = "Licenses/SPLEETER-LICENSE.txt";
+            sourceTree = "<group>";
+        };
+		4F6A1B2C3D4E5F60718293A8 = {
+            isa = "PBXFileReference";
+            lastKnownFileType = "text";
+            path = "Licenses/SPLEETER-MODEL-NOTICE.txt";
+            sourceTree = "<group>";
+        };
 		01D4BEF8DF2B4ED68F219DD2 = {
             isa = "PBXFileReference";
             lastKnownFileType = "folder.assetcatalog";
@@ -433,6 +483,9 @@
                 "01D4BEF8DF2B4ED68F219DD2",
                 "29A1E39FEE4F4D1EABF0C614",
                 "8B2D7F3A5C9E1B4D6F8A0C2E",
+                "4F6A1B2C3D4E5F60718293A6",
+                "4F6A1B2C3D4E5F60718293A7",
+                "4F6A1B2C3D4E5F60718293A8",
             );
             isa = "PBXGroup";
             name = "Resources";
@@ -478,6 +531,8 @@
         };
 		96092A6301BD47F692D46D1C = {
             children = (
+                "4F6A1B2C3D4E5F60718293A4",
+                "4F6A1B2C3D4E5F60718293A5",
                 "76F9D1EFE4764185A96D7FAE",
             );
             isa = "PBXGroup";
@@ -613,6 +668,9 @@
             files = (
                 "17FE8BD49E604D1B9BD25489",
                 "9A1C7E2F4B6D8A0C1E3F5A7E",
+                "5F6A1B2C3D4E5F60718293A6",
+                "5F6A1B2C3D4E5F60718293A7",
+                "5F6A1B2C3D4E5F60718293A8",
             );
             isa = "PBXResourcesBuildPhase";
             runOnlyForDeploymentPostprocessing = 0;
@@ -623,6 +681,8 @@
 		211712ED99E5469E972FC415 = {
             buildActionMask = "2147483647";
             files = (
+                "5F6A1B2C3D4E5F60718293A4",
+                "5F6A1B2C3D4E5F60718293A5",
                 "077F39D4BF994B6B99564096",
                 "13A7C28F75234021B998A659",
                 "151CF15AD2944F5CB1F8BED8",

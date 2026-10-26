@@ -689,7 +689,7 @@ private struct SystemVideoPicker: UIViewControllerRepresentable {
         var configuration = PHPickerConfiguration(photoLibrary: .shared())
         configuration.filter = .videos
         configuration.selectionLimit = 1
-        configuration.preferredAssetRepresentationMode = .compatible
+        configuration.preferredAssetRepresentationMode = .current
 
         let picker = PHPickerViewController(configuration: configuration)
         picker.delegate = context.coordinator
