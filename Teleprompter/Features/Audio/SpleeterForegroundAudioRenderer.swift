@@ -878,7 +878,7 @@ private final class RenderWorker: @unchecked Sendable {
                         )
                         guard fraction - lastReportedProgress >= 0.01 else { continue }
                         lastReportedProgress = fraction
-                        Task { @MainActor [progress] in
+                        Task { @MainActor [progress = self.progress] in
                             progress(fraction)
                         }
                     }
